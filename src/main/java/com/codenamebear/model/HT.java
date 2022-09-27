@@ -1,23 +1,21 @@
-package com.codenamebear;
+package com.codenamebear.model;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.util.ArrayList;
 
-class HT implements java.io.Serializable {
+public class HT implements java.io.Serializable {
 
     static final class Node {
-        Object key;
+        String key;
+        double value;
         Node next;
-        // int count;
-        // Object value;
-        Node(Object k, Node n) { key = k; next = n; }
+        Node(String k, double v, Node n) { key = k; value = v; next = n; }
     }
 
-    Node[] table = new Node[8];
-    int size = 0;
+    private Node[] table = new Node[8];
+    private int size = 0;
     
     @Serial
     private void writeObject(ObjectOutputStream s) throws IOException {
@@ -30,16 +28,7 @@ class HT implements java.io.Serializable {
         }
     }
 
-    @Serial
-    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
-        s.defaultReadObject();
-        int n = s.readInt();
-        for (int i = 0; i < n; ++i){
-            add(s.readObject());
-        }
-    }
-
-    boolean contains(Object key) {
+    public boolean contains(String key) {
         int h = key.hashCode();
         int i = h & (table.length - 1);
         for (Node e = table[i]; e != null; e = e.next) {
@@ -50,21 +39,35 @@ class HT implements java.io.Serializable {
         return false;
     }
 
-    public ArrayList<Object> getKeys(){
-        ArrayList<Object> keys = new ArrayList<>();
-        for (Node node : table) {
-            Node e = node;
-            keys.add(e.key);
-
-            while (e.next != null) {
-                e = e.next;
-                keys.add(e.key);
+    public double getValue(Object key) {
+        int h = key.hashCode();
+        int i = h & (table.length - 1);
+        for (Node e = table[i]; e != null; e = e.next) {
+            if (key.equals(e.key)){
+                return e.value;
             }
         }
-        return keys;
+        return 0;
     }
 
-    void add(Object key) {
+    public ArrayList<WeightedWord> getKeys(){
+        ArrayList<WeightedWord> weightedWords = new ArrayList<>();
+        for (Node node : table) {
+            Node e = node;
+
+            if(e != null){
+                weightedWords.add(new WeightedWord(e.key, e.value));
+
+                while (e.next != null) {
+                    e = e.next;
+                    weightedWords.add(new WeightedWord(e.key, e.value));
+                }
+            }
+        }
+        return weightedWords;
+    }
+
+    public void add(String key, double value) {
         int h = key.hashCode();
         int i = h & (table.length - 1);
         for (Node e = table[i]; e != null; e = e.next) {
@@ -72,14 +75,14 @@ class HT implements java.io.Serializable {
                 return;
             }
         }
-        table[i] = new Node(key, table[i]);
+        table[i] = new Node(key, value, table[i]);
         ++size;
         if ((float)size/table.length >= 0.75f){
             resize();
         }
     }
 
-    void resize() {
+    private void resize() {
         Node[] oldTable = table;
         int oldCapacity = oldTable.length;
         int newCapacity = oldCapacity << 1;
@@ -88,24 +91,15 @@ class HT implements java.io.Serializable {
             for (Node e = oldTable[i]; e != null; e = e.next) {
                 int h = e.key.hashCode();
                 int j = h & (newTable.length - 1);
-                newTable[j] = new Node(e.key, newTable[j]);
+                newTable[j] = new Node(e.key, e.value, newTable[j]);
             }
         }
         table = newTable;
     }
 
-    void remove(Object key) {
+    public void remove(Object key) {
         int h = key.hashCode();
         int i = h & (table.length - 1);
-
-        // 1010101010
-        // 1110000000
-        // 101
-
-        // a == 10110001
-        // b == 11011011
-        //a&b== 10010001
-
 
         Node e = table[i], p = null;
         while (e != null) {
