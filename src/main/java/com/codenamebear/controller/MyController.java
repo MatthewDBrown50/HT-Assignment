@@ -35,31 +35,51 @@ public class MyController {
         Website bestMatch = this.websites.get(0);
         double matchValue = 0;
 
-        for(int i = 0; i < websites.size() - 1; i++) {
+        ArrayList<WeightedWord> matches = new ArrayList<>();
 
-            int index = weightedWords.size() - 1;
-            double newMatchValue = 0;
+        for(int i = 0; i < this.websites.size() - 1; i++) {
 
-            for(int j = index; j > index -50; j--) {
+            if(!this.websites.get(i).getUrl().equals(this.userWebsite.getUrl())){
 
-                if(websites.get(i).getWeightedWords().contains(weightedWords.get(j).getWord())){
+                ArrayList<WeightedWord> newMatches = new ArrayList<>();
 
-                    newMatchValue += websites.get(i).getWeightedWords().getValue(weightedWords.get(j).getWord());
+                int index = weightedWords.size() - 1;
+                double newMatchValue = 0;
 
+                for(int j = index; j >= 0; j--) {
+
+                    String word = weightedWords.get(j).getWord();
+
+                    if(this.websites.get(i).getWeightedWords().contains(word)){
+
+                        double userSiteTfIdf = this.userWebsite.getWeightedWords().getValue(word);
+                        double websiteTfIdf = this.websites.get(i).getWeightedWords().getValue(word);
+
+                        double currentMatchValue = userSiteTfIdf * websiteTfIdf;
+                        newMatchValue += currentMatchValue;
+
+                        newMatches.add(new WeightedWord(word, currentMatchValue));
+                    }
+
+                }
+
+                if(newMatchValue >= matchValue){
+                    bestMatch = websites.get(i);
+                    matchValue = newMatchValue;
+                    matches = newMatches;
                 }
 
             }
 
-            if(newMatchValue > matchValue){
-                bestMatch = websites.get(i);
-                matchValue = newMatchValue;
-            }
-
         }
 
-        System.out.println("Best Match is: " + bestMatch.getUrl());
+        System.out.println("\nBest Match is: " + bestMatch.getUrl());
 
+        System.out.println("\nTags/Match Rate:");
 
+        for(WeightedWord weightedWord : matches){
+            System.out.println(weightedWord.getWord() + " / " + weightedWord.getTfIdfValue());
+        }
 
     }
 
@@ -81,7 +101,6 @@ public class MyController {
         WebsiteParser.setWordCounts(content, website, ignoredWords);
 
         this.websites.add(website);
-
         this.userWebsite = website;
     }
 
