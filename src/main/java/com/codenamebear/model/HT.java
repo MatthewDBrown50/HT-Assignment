@@ -21,8 +21,8 @@ public class HT implements java.io.Serializable {
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
         s.writeInt(size);
-        for (int i = 0; i < table.length; ++i) {
-            for (Node e = table[i]; e != null; e = e.next) {
+        for (Node node : table) {
+            for (Node e = node; e != null; e = e.next) {
                 s.writeObject(e.key);
             }
         }
@@ -87,31 +87,13 @@ public class HT implements java.io.Serializable {
         int oldCapacity = oldTable.length;
         int newCapacity = oldCapacity << 1;
         Node[] newTable = new Node[newCapacity];
-        for (int i = 0; i < oldCapacity; ++i) {
-            for (Node e = oldTable[i]; e != null; e = e.next) {
+        for (Node node : oldTable) {
+            for (Node e = node; e != null; e = e.next) {
                 int h = e.key.hashCode();
                 int j = h & (newTable.length - 1);
                 newTable[j] = new Node(e.key, e.value, newTable[j]);
             }
         }
         table = newTable;
-    }
-
-    public void remove(Object key) {
-        int h = key.hashCode();
-        int i = h & (table.length - 1);
-
-        Node e = table[i], p = null;
-        while (e != null) {
-            if (key.equals(e.key)) {
-                if (p == null)
-                    table[i] = e.next;
-                else
-                    p.next = e.next;
-                break;
-            }
-            p = e;
-            e = e.next;
-        }
     }
 }

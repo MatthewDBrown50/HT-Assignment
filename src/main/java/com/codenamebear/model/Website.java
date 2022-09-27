@@ -4,31 +4,17 @@ import java.util.ArrayList;
 
 public class Website {
 
-    private String url;
-    private HT ht;
+    private final String url;
     private ArrayList<WordCount> wordCounts;
     private HT weightedWords;
     private int totalWords;
 
     public Website(String url) {
         this.url = url;
-        ht = new HT();
     }
 
     public String getUrl() {
         return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public HT getHt() {
-        return ht;
-    }
-
-    public void setHt(HT ht) {
-        this.ht = ht;
     }
 
     public ArrayList<WordCount> getWordCounts() {

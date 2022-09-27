@@ -15,12 +15,15 @@ import java.util.List;
 public class WebsiteParser {
 
     public static HT getWeightedWords(Website website, List<Website> websites){
+
+        // Establish Hash Table for storing words with their TFIDF values
         HT weightedWords = new HT();
 
+        // For all the WordCount objects held by the Website object:
         for(WordCount wordCount : website.getWordCounts()){
 
+            // Calculate the word's TFIDF value and store it in the Hash Table
             double tfIdfValue = getTfIdf(wordCount, website.getTotalWords(), websites);
-
             weightedWords.add(wordCount.getWord(), tfIdfValue);
 
         }
@@ -28,6 +31,7 @@ public class WebsiteParser {
         return weightedWords;
     }
 
+    // Perform TFIDF final calculation
     public static double getTfIdf(WordCount wordCount, int totalWords, List<Website> websites) {
         return tf(wordCount, totalWords) * idf(websites, wordCount.getWord());
     }
@@ -114,6 +118,7 @@ public class WebsiteParser {
 
     private static boolean filter(String word, List<String> ignoredWords){
 
+        // Return true if word is less than 3 characters and contains only numbers
         if(word.length() < 3){
             boolean hasLetters = false;
 
@@ -128,11 +133,14 @@ public class WebsiteParser {
             }
         }
 
+        // Return true if the word is found in the list of words to be ignored
         return ignoredWords.contains(word);
 
     }
 
     private static double tf(WordCount wordCount, int totalWords) {
+
+        // Return how often the word appears in the document as a quantile
         return (double) wordCount.getCount()/totalWords;
     }
 
@@ -141,14 +149,19 @@ public class WebsiteParser {
         double totalWords = 0;
 
         for(Website website : websites){
+
+            // Count how many times the word appears in the document
             for(WordCount wordCount: website.getWordCounts()){
+
                 if(wordCount.getWord().equalsIgnoreCase(word)){
                     count += wordCount.getCount();
                 }
             }
 
+            // Track the total number of words between all documents
             totalWords += website.getTotalWords();
         }
+
         return Math.log(totalWords / count);
     }
 }

@@ -2,7 +2,7 @@ package com.codenamebear.model;
 
 public class WordCount {
 
-    private String word;
+    private final String word;
     private int count;
 
     public WordCount(String word) {
@@ -12,10 +12,6 @@ public class WordCount {
 
     public String getWord() {
         return word;
-    }
-
-    public void setWord(String word) {
-        this.word = word;
     }
 
     public int getCount() {
