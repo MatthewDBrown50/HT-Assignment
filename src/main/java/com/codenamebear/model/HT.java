@@ -1,3 +1,7 @@
+//==========================================
+//  AUTHOR:    Matthew D Brown
+//==========================================
+
 package com.codenamebear.model;
 
 import java.io.IOException;

@@ -1,23 +1,27 @@
+//==========================================
+//  AUTHOR:    Matthew D Brown
+//==========================================
+
 package com.codenamebear.controller;
 
 import com.codenamebear.model.Website;
 import com.codenamebear.model.WeightedWord;
 import com.codenamebear.utility.WebsiteParser;
-
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Scanner;
 
 public class Controller {
 
     private final List<Website> websites;
     private final List<String> ignoredWords;
-    Website userWebsite;
+    private Website userWebsite;
 
     public Controller() throws IOException {
 
@@ -38,10 +42,19 @@ public class Controller {
         }
     }
 
-    public void processUserRequest() throws IOException {
+    public boolean validateUrl(String address){
+        try {
+            URL url = new URL(address);
+            URLConnection conn = url.openConnection();
+            conn.connect();
+        } catch (IOException e) {
+            return false;
+        }
 
-        // Prompt the user to enter a URL and store it
-        String url = getUrlFromUser();
+        return true;
+    }
+
+    public String processUserRequest(String url) throws IOException {
 
         // Extract the text from the website at that URL and add its data to this.websites
         addWebsite(url);
@@ -50,10 +63,10 @@ public class Controller {
         setTfIdfValues();
 
         // Provide the user with the URL whose content best matches that of the user-entered URL
-        report();
+        return report();
     }
 
-    private void report(){
+    private String report(){
 
         // Get the weighted words associated with the user-entered URL and store them in an arraylist
         ArrayList<WeightedWord> weightedWords = this.userWebsite.getWeightedWords().getKeys();
@@ -104,14 +117,7 @@ public class Controller {
             }
         }
 
-        System.out.println("\nBest Match is: " + bestMatch.getUrl());
-    }
-
-    public static String getUrlFromUser(){
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.println("Please enter a URL:  ");
-        return scanner.next();
+        return "Best Match is: " + bestMatch.getUrl();
     }
 
     public void addWebsite(String url) throws IOException {

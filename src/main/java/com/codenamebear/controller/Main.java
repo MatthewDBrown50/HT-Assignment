@@ -1,6 +1,10 @@
+//==========================================
+//  AUTHOR:    Matthew D Brown
+//==========================================
+
 package com.codenamebear.controller;
 
-import com.codenamebear.view.View;
+import com.codenamebear.view.MainFrame;
 
 import java.io.IOException;
 
@@ -8,12 +12,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        // Instantiate the Controller
-//        Controller controller = new Controller();
+        new MainFrame(new Controller());
 
-        // Give control to the Controller class
-//        controller.processUserRequest();
-
-        new View();
     }
 }
