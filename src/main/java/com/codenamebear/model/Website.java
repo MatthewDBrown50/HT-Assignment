@@ -4,13 +4,10 @@
 
 package com.codenamebear.model;
 
-import java.util.ArrayList;
-
 public class Website {
 
     private final String url;
-    private ArrayList<WordCount> wordCounts;
-    private HT weightedWords;
+    private HT words;
     private int totalWords;
 
     public Website(String url) {
@@ -21,14 +18,6 @@ public class Website {
         return url;
     }
 
-    public ArrayList<WordCount> getWordCounts() {
-        return wordCounts;
-    }
-
-    public void setWordCounts(ArrayList<WordCount> wordCounts) {
-        this.wordCounts = wordCounts;
-    }
-
     public int getTotalWords() {
         return totalWords;
     }
@@ -37,11 +26,11 @@ public class Website {
         this.totalWords = totalWords;
     }
 
-    public HT getWeightedWords() {
-        return weightedWords;
+    public HT getWords() {
+        return words;
     }
 
-    public void setWeightedWords(HT weightedWords) {
-        this.weightedWords = weightedWords;
+    public void setWords(HT words) {
+        this.words = words;
     }
 }

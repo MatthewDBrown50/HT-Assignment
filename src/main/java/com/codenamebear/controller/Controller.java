@@ -4,9 +4,10 @@
 
 package com.codenamebear.controller;
 
+import com.codenamebear.model.HT;
 import com.codenamebear.model.Website;
-import com.codenamebear.model.WeightedWord;
-import com.codenamebear.utility.WebsiteParser;
+import com.codenamebear.model.Word;
+import com.codenamebear.utility.WebTextProcessor;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -69,8 +70,8 @@ public class Controller {
     private String report(){
 
         // Get the weighted words associated with the user-entered URL and store them in an arraylist
-        ArrayList<WeightedWord> weightedWords = this.userWebsite.getWeightedWords().getKeys();
-        Collections.sort(weightedWords);
+        ArrayList<Word> words = this.userWebsite.getWords().getKeys();
+        Collections.sort(words);
 
         // Initialize the 'best matching' website
         Website bestMatch = this.websites.get(0);
@@ -88,17 +89,17 @@ public class Controller {
                 // user-entered website's content
                 double newMatchValue = 0;
 
-                for (WeightedWord weightedWord : weightedWords) {
-                    String word = weightedWord.word();
+                for (Word word : words) {
+                    String nextWord = word.getWord();
 
                     // If the content of websites.get(i) contains the specified word in the user's content:
-                    if (this.websites.get(i).getWeightedWords().contains(word)) {
+                    if (this.websites.get(i).getWords().contains(nextWord)) {
 
                         // Get the weighted value for the word in the user's document
-                        double userSiteTfIdf = this.userWebsite.getWeightedWords().getValue(word);
+                        double userSiteTfIdf = this.userWebsite.getWords().getWeight(word.getWord());
 
                         // Get the weighted value for the word in the websites.get(i) document
-                        double websiteTfIdf = this.websites.get(i).getWeightedWords().getValue(word);
+                        double websiteTfIdf = this.websites.get(i).getWords().getWeight(word.getWord());
 
                         // Multiply the weights to establish a match value, then add it to the total match value for the
                         // websites.get(i) document
@@ -124,11 +125,11 @@ public class Controller {
         Website website = new Website(url);
 
         // Extract the text content from the webpage
-        String content = WebsiteParser.extractTextFromUrl(url);
+        String content = WebTextProcessor.extractTextFromUrl(url);
 
         // Get the total number of words, along with the word count for each word in the text content,
         // then assign them to the website object
-        WebsiteParser.setWordCounts(content, website, ignoredWords);
+        WebTextProcessor.setWordCounts(content, website, ignoredWords);
 
         this.websites.add(website);
         this.userWebsite = website;
@@ -139,8 +140,8 @@ public class Controller {
         for(Website website : this.websites){
 
             // Assign a Hash Table to each website with the words that appear on the page and their weighted values
-            website.setWeightedWords(WebsiteParser.getWeightedWords(website, this.websites));
-
+            HT ht = WebTextProcessor.getWeightedWords(website, this.websites);
+            website.setWords(ht);
         }
     }
 }

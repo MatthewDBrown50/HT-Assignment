@@ -6,36 +6,34 @@ package com.codenamebear.utility;
 
 import com.codenamebear.model.HT;
 import com.codenamebear.model.Website;
-import com.codenamebear.model.WordCount;
+import com.codenamebear.model.Word;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
-public class WebsiteParser {
+public class WebTextProcessor {
 
     public static HT getWeightedWords(Website website, List<Website> websites){
 
-        // Establish Hash Table for storing words with their TFIDF values
-        HT weightedWords = new HT();
-
         // For all the WordCount objects held by the Website object:
-        for(WordCount wordCount : website.getWordCounts()){
+        for(Word word : website.getWords().getKeys()){
 
             // Calculate the word's TFIDF value and store it in the Hash Table
-            double tfIdfValue = getTfIdf(wordCount, website.getTotalWords(), websites);
-            weightedWords.add(wordCount.getWord(), tfIdfValue);
+            double tfIdfValue = getTfIdf(word, website.getTotalWords(), websites);
+
+            website.getWords().setWeight(word.getWord(), tfIdfValue);
 
         }
 
-        return weightedWords;
+        return  website.getWords();
     }
 
     // Perform TFIDF final calculation
-    public static double getTfIdf(WordCount wordCount, int totalWords, List<Website> websites) {
+    public static double getTfIdf(Word wordCount, int totalWords, List<Website> websites) {
+
         return tf(wordCount, totalWords) * idf(websites, wordCount.getWord());
     }
 
@@ -62,7 +60,7 @@ public class WebsiteParser {
     public static void setWordCounts(String text, Website website, List<String> ignoredWords){
 
         // Establish wordCount arraylist
-        ArrayList<WordCount> wordCounts = new ArrayList<>();
+        HT words = new HT();
 
         // Remove all special characters from the text
         text = text.replaceAll("[^a-zA-Z0-9]", " ");
@@ -78,33 +76,26 @@ public class WebsiteParser {
             // If textWord actually contains a word:
             if(!textWord.equals("")){
 
+                // Convert textWord to lowercase
                 String lowerCaseWord = textWord.toLowerCase();
 
+                // If the lowercase word is not in the list of filtered words:
                 if(!filter(lowerCaseWord, ignoredWords)){
 
+                    // Increment the total number of words for the page
                     totalWords++;
-                    boolean wordFound = false;
 
-                    // For each wordCount in the arraylist:
-                    for(WordCount wordCount : wordCounts){
+                    // If the word is found:
+                    if(words.contains(lowerCaseWord)){
 
-                        // If the word is found:
-                        if(wordCount.getWord().equals(lowerCaseWord)){
+                        int count = words.getCount(lowerCaseWord) + 1;
+                        // Add 1 to the count
+                        words.setCount(lowerCaseWord, count);
 
-                            // Add 1 to the count
-                            wordCount.setCount(wordCount.getCount() + 1);
-                            wordFound = true;
-                            break;
-
-                        }
-
-                    }
-
-                    // If the word wasn't found:
-                    if(!wordFound){
+                    } else {
 
                         // Add the word to the wordCount arraylist;
-                        wordCounts.add(new WordCount(lowerCaseWord));
+                        words.add(lowerCaseWord);
 
                     }
 
@@ -115,7 +106,7 @@ public class WebsiteParser {
         }
 
         // Set the website object's wordCounts and totalWords
-        website.setWordCounts(wordCounts);
+        website.setWords(words);
         website.setTotalWords(totalWords);
     }
 
@@ -141,7 +132,7 @@ public class WebsiteParser {
 
     }
 
-    private static double tf(WordCount wordCount, int totalWords) {
+    private static double tf(Word wordCount, int totalWords) {
 
         // Return how often the word appears in the document as a quantile
         return (double) wordCount.getCount()/totalWords;
@@ -154,10 +145,10 @@ public class WebsiteParser {
         for(Website website : websites){
 
             // Count how many times the word appears in the document
-            for(WordCount wordCount: website.getWordCounts()){
+            for(Word nextWord: website.getWords().getKeys()){
 
-                if(wordCount.getWord().equalsIgnoreCase(word)){
-                    count += wordCount.getCount();
+                if(nextWord.getWord().equalsIgnoreCase(word)){
+                    count += nextWord.getCount();
                 }
             }
 

@@ -13,9 +13,23 @@ public class HT implements java.io.Serializable {
 
     static final class Node {
         String key;
-        double value;
+        int count;
+        double tfIdfValue;
         Node next;
-        Node(String k, double v, Node n) { key = k; value = v; next = n; }
+        Node(String k, Node n) {
+            key = k;
+            count = 1;
+            tfIdfValue = 0;
+            next = n;
+        }
+
+        public void setTfIdfValue(double tfIdfValue) {
+            this.tfIdfValue = tfIdfValue;
+        }
+
+        public void setCount(int count) {
+            this.count = count;
+        }
     }
 
     private Node[] table = new Node[8];
@@ -43,35 +57,76 @@ public class HT implements java.io.Serializable {
         return false;
     }
 
-    public double getValue(Object key) {
+    public void setWeight(String key, double weight) {
         int h = key.hashCode();
         int i = h & (table.length - 1);
         for (Node e = table[i]; e != null; e = e.next) {
             if (key.equals(e.key)){
-                return e.value;
+                e.setTfIdfValue(weight);
+            }
+        }
+    }
+
+    public void setCount(String key, int count) {
+        int h = key.hashCode();
+        int i = h & (table.length - 1);
+        for (Node e = table[i]; e != null; e = e.next) {
+            if (key.equals(e.key)){
+                e.setCount(count);
+            }
+        }
+
+
+    }
+
+    public int getCount(String key){
+        int h = key.hashCode();
+        int i = h & (table.length - 1);
+        for (Node e = table[i]; e != null; e = e.next) {
+            if (key.equals(e.key)){
+                return e.count;
             }
         }
         return 0;
     }
 
-    public ArrayList<WeightedWord> getKeys(){
-        ArrayList<WeightedWord> weightedWords = new ArrayList<>();
+    public double getWeight(String key) {
+        int h = key.hashCode();
+        int i = h & (table.length - 1);
+        for (Node e = table[i]; e != null; e = e.next) {
+            if (key.equals(e.key)){
+                return e.tfIdfValue;
+            }
+        }
+        return 0;
+    }
+
+    public ArrayList<Word> getKeys(){
+        ArrayList<Word> words = new ArrayList<>();
         for (Node node : table) {
             Node e = node;
 
             if(e != null){
-                weightedWords.add(new WeightedWord(e.key, e.value));
+
+                Word word = new Word(e.key);
+                word.setCount(e.count);
+                word.setTfIdfValue(e.tfIdfValue);
+                words.add(word);
 
                 while (e.next != null) {
                     e = e.next;
-                    weightedWords.add(new WeightedWord(e.key, e.value));
+
+                    Word nextWord = new Word(e.key);
+                    word.setCount(e.count);
+                    word.setTfIdfValue(e.tfIdfValue);
+                    words.add(nextWord);
                 }
             }
         }
-        return weightedWords;
+        return words;
     }
 
-    public void add(String key, double value) {
+    public void add(String key) {
         int h = key.hashCode();
         int i = h & (table.length - 1);
         for (Node e = table[i]; e != null; e = e.next) {
@@ -79,7 +134,7 @@ public class HT implements java.io.Serializable {
                 return;
             }
         }
-        table[i] = new Node(key, value, table[i]);
+        table[i] = new Node(key, table[i]);
         ++size;
         if ((float)size/table.length >= 0.75f){
             resize();
@@ -95,7 +150,12 @@ public class HT implements java.io.Serializable {
             for (Node e = node; e != null; e = e.next) {
                 int h = e.key.hashCode();
                 int j = h & (newTable.length - 1);
-                newTable[j] = new Node(e.key, e.value, newTable[j]);
+
+                Node n = new Node(e.key, newTable[j]);
+                n.setCount(e.count);
+                n.setTfIdfValue(e.tfIdfValue);
+
+                newTable[j] = n;
             }
         }
         table = newTable;
