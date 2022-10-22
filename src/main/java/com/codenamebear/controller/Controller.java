@@ -41,6 +41,9 @@ public class Controller {
             // Extract the text from the page, process word counts, and add the website to this.websites
             addWebsite(url);
         }
+
+        // Establish a Hash Table for the website with weight values for the words
+        setTfIdfValues();
     }
 
     public boolean validateUrl(String address){
@@ -57,11 +60,19 @@ public class Controller {
 
     public String processUserRequest(String url) throws IOException {
 
-        // Extract the text from the website at that URL and add its data to this.websites
-        addWebsite(url);
+        Website website = new Website(url);
 
-        // Establish a Hash Table for the website with weight values for the words
-        setTfIdfValues();
+        // Extract the text content from the webpage
+        String content = WebTextProcessor.extractTextFromUrl(url);
+
+        // Get the total number of words, along with the word count for each word in the text content,
+        // then assign them to the website object
+        WebTextProcessor.setWordCounts(content, website, ignoredWords);
+
+        this.userWebsite = website;
+
+        // Provide weights to the words tracked for the user-entered URL
+        setTfValues();
 
         // Provide the user with the URL whose content best matches that of the user-entered URL
         return report();
@@ -104,6 +115,10 @@ public class Controller {
                         // Multiply the weights to establish a match value, then add it to the total match value for the
                         // websites.get(i) document
                         double currentMatchValue = userSiteTfIdf * websiteTfIdf;
+
+                        // TODO Remove this
+                        System.out.println("User: " + userSiteTfIdf + "   Site: " + websiteTfIdf + "   Match: " + currentMatchValue);
+
                         newMatchValue += currentMatchValue;
                     }
 
@@ -133,6 +148,21 @@ public class Controller {
 
         this.websites.add(website);
         this.userWebsite = website;
+    }
+
+    private void setTfValues(){
+
+        int totalWords = this.userWebsite.getTotalWords();
+
+        // Return how often the word appears in the document as a quantile
+        for(Word word : this.userWebsite.getWords().getKeys()){
+
+            String wordName = word.getWord();
+
+            double value = (double) word.getCount()/totalWords;
+
+            this.userWebsite.getWords().setWeight(wordName, value);
+        }
     }
 
     private void setTfIdfValues(){
