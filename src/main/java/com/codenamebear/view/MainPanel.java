@@ -15,7 +15,6 @@ public class MainPanel extends JPanel {
     private final JTextField urlField;
     private final JLabel resultLabel;
     private final Controller controller;
-    private final JLabel warningLabel;
 
     public MainPanel(Controller controller) {
 
@@ -30,12 +29,19 @@ public class MainPanel extends JPanel {
         JButton searchButton = new JButton("Search for Related URL");
         resultLabel = new JLabel("Result will appear here.");
         JButton scrapeButton = new JButton("Re-Scrape Content");
-        warningLabel = new JLabel("WARNING: This will take several minutes!");
+        JLabel warningLabel = new JLabel("WARNING: This will take several minutes!");
 
         searchButton.addActionListener(e -> {
 
             // Carry out user request
             performSearch();
+
+        });
+
+        scrapeButton.addActionListener(e -> {
+
+            // Scrape web content for all URLs
+            controller.scrapeContent();
 
         });
 

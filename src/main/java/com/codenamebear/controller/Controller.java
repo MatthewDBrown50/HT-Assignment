@@ -29,17 +29,24 @@ public class Controller {
         // Establish a list of ignored words
         this.ignoredWords = Files.readAllLines(Paths.get("src/main/resources/filter.txt"), StandardCharsets.UTF_8);
 
-        // Store a list of URL addresses from the 'websites.txt' resource
-        List<String> urls = Files.readAllLines(Paths.get("src/main/resources/websites.txt"), StandardCharsets.UTF_8);
-
         // Establish an arraylist of website objects
         this.websites = new ArrayList<>();
+    }
 
-        // For the webpage at each URL:
-        for(String url : urls){
+    public void scrapeContent(){
 
-            // Extract the text from the page, process word counts, and add the website to this.websites
-            addWebsite(url);
+        try {
+            // Store a list of URL addresses from the 'websites.txt' resource
+            List<String> urls = Files.readAllLines(Paths.get("src/main/resources/websites.txt"), StandardCharsets.UTF_8);
+
+            // For the webpage at each URL:
+            for(String url : urls){
+
+                // Extract the text from the page, process word counts, and add the website to this.websites
+                addWebsite(url);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         // Establish a Hash Table for the website with weight values for the words
@@ -117,9 +124,6 @@ public class Controller {
                         // websites.get(i) document
                         double currentMatchValue = userSiteTfIdf * websiteTfIdf;
 
-                        // TODO Remove this
-                        System.out.println("User: " + userSiteTfIdf + "   Site: " + websiteTfIdf + "   Match: " + currentMatchValue);
-
                         newMatchValue += currentMatchValue;
                     }
 
@@ -149,21 +153,6 @@ public class Controller {
 
         this.websites.add(website);
         this.userWebsite = website;
-    }
-
-    private void setTfValues(){
-
-        int totalWords = this.userWebsite.getTotalWords();
-
-        // Return how often the word appears in the document as a quantile
-        for(Word word : this.userWebsite.getWords().getKeys()){
-
-            String wordName = word.getWord();
-
-            double value = (double) word.getCount()/totalWords;
-
-            this.userWebsite.getWords().setWeight(wordName, value);
-        }
     }
 
     private void setTfIdfValues(){
