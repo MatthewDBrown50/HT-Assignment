@@ -15,6 +15,7 @@ public class MainPanel extends JPanel {
     private final JTextField urlField;
     private final JLabel resultLabel;
     private final Controller controller;
+    private final JLabel warningLabel;
 
     public MainPanel(Controller controller) {
 
@@ -28,6 +29,8 @@ public class MainPanel extends JPanel {
         urlField = new JTextField();
         JButton searchButton = new JButton("Search for Related URL");
         resultLabel = new JLabel("Result will appear here.");
+        JButton scrapeButton = new JButton("Re-Scrape Content");
+        warningLabel = new JLabel("WARNING: This will take several minutes!");
 
         searchButton.addActionListener(e -> {
 
@@ -46,6 +49,7 @@ public class MainPanel extends JPanel {
 
         gc.gridx = 1;
         gc.gridy = 1;
+        gc.gridwidth = 2;
         gc.weightx = 1;
         gc.weighty = 1;
         gc.fill = GridBagConstraints.HORIZONTAL;
@@ -54,6 +58,7 @@ public class MainPanel extends JPanel {
 
         gc.gridx = 1;
         gc.gridy = 2;
+        gc.gridwidth = 2;
         gc.weightx = 1;
         gc.weighty = 1;
         gc.fill = GridBagConstraints.HORIZONTAL;
@@ -62,6 +67,7 @@ public class MainPanel extends JPanel {
 
         gc.gridx = 1;
         gc.gridy = 3;
+        gc.gridwidth = 2;
         gc.weightx = 1;
         gc.weighty = 1;
         gc.fill = GridBagConstraints.NONE;
@@ -70,11 +76,32 @@ public class MainPanel extends JPanel {
 
         gc.gridx = 1;
         gc.gridy = 4;
+        gc.gridwidth = 2;
         gc.weightx = 1;
         gc.weighty = 1;
         gc.fill = GridBagConstraints.HORIZONTAL;
         gc.insets = new Insets(0, 30, 50, 30);
         add(resultLabel, gc);
+
+        gc.gridx = 1;
+        gc.gridy = 5;
+        gc.gridwidth = 1;
+        gc.weightx = 1;
+        gc.weighty = 1;
+        gc.anchor = GridBagConstraints.LINE_END;
+        gc.fill = GridBagConstraints.NONE;
+        gc.insets = new Insets(0, 30, 0, 5);
+        add(scrapeButton, gc);
+
+        gc.gridx = 2;
+        gc.gridy = 5;
+        gc.gridwidth = 1;
+        gc.weightx = 1;
+        gc.weighty = 1;
+        gc.anchor = GridBagConstraints.LINE_START;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.insets = new Insets(0, 5, 0, 30);
+        add(warningLabel, gc);
 
     }
 

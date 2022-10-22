@@ -72,7 +72,8 @@ public class Controller {
         this.userWebsite = website;
 
         // Provide weights to the words tracked for the user-entered URL
-        setTfValues();
+        HT weightedWords = WebTextProcessor.getWeightedWords(this.userWebsite, this.websites);
+        this.userWebsite.setWords(weightedWords);
 
         // Provide the user with the URL whose content best matches that of the user-entered URL
         return report();
