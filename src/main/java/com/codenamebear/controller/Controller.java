@@ -7,6 +7,7 @@ package com.codenamebear.controller;
 import com.codenamebear.model.HT;
 import com.codenamebear.model.Website;
 import com.codenamebear.model.Word;
+import com.codenamebear.utility.KMedoidsProducer;
 import com.codenamebear.utility.WebTextProcessor;
 import java.io.IOException;
 import java.net.URL;
@@ -23,6 +24,8 @@ public class Controller {
     private final List<Website> websites;
     private final List<String> ignoredWords;
     private Website userWebsite;
+    private KMedoidsProducer kMedoidsProducer;
+    private ArrayList<ArrayList<Website>> medoids;
 
     public Controller() throws IOException {
 
@@ -33,36 +36,18 @@ public class Controller {
         this.websites = new ArrayList<>();
     }
 
-    public void scrapeContent(){
+    public void addWebsite(String url) throws IOException {
+        Website website = new Website(url);
 
-        try {
-            // Store a list of URL addresses from the 'websites.txt' resource
-            List<String> urls = Files.readAllLines(Paths.get("src/main/resources/websites.txt"), StandardCharsets.UTF_8);
+        // Extract the text content from the webpage
+        String content = WebTextProcessor.extractTextFromUrl(url);
 
-            // For the webpage at each URL:
-            for(String url : urls){
+        // Get the total number of words, along with the word count for each word in the text content,
+        // then assign them to the website object
+        WebTextProcessor.setWordCounts(content, website, ignoredWords);
 
-                // Extract the text from the page, process word counts, and add the website to this.websites
-                addWebsite(url);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Establish a Hash Table for the website with weight values for the words
-        setTfIdfValues();
-    }
-
-    public boolean validateUrl(String address){
-        try {
-            URL url = new URL(address);
-            URLConnection conn = url.openConnection();
-            conn.connect();
-        } catch (IOException e) {
-            return false;
-        }
-
-        return true;
+        this.websites.add(website);
+        this.userWebsite = website;
     }
 
     public String processUserRequest(String url) throws IOException {
@@ -141,18 +126,41 @@ public class Controller {
         return "Best Match is: " + bestMatch.getUrl();
     }
 
-    public void addWebsite(String url) throws IOException {
-        Website website = new Website(url);
+    public void scrapeContent(){
 
-        // Extract the text content from the webpage
-        String content = WebTextProcessor.extractTextFromUrl(url);
+        try {
+            // Store a list of URL addresses from the 'websites.txt' resource
+            List<String> urls = Files.readAllLines(Paths.get("src/main/resources/websites.txt"), StandardCharsets.UTF_8);
 
-        // Get the total number of words, along with the word count for each word in the text content,
-        // then assign them to the website object
-        WebTextProcessor.setWordCounts(content, website, ignoredWords);
+            // For the webpage at each URL:
+            for(String url : urls){
 
-        this.websites.add(website);
-        this.userWebsite = website;
+                // Extract the text from the page, process word counts, and add the website to this.websites
+                addWebsite(url);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Establish a Hash Table for the website with weight values for the words
+        setTfIdfValues();
+
+        // Establish a categorized list of website lists
+        kMedoidsProducer = new KMedoidsProducer(this.websites);
+        this.medoids = kMedoidsProducer.getMedoids();
+
+        // TODO: REMOVE THIS
+        for(ArrayList<Website> list : this.medoids){
+
+            System.out.println("CENTER: " + list.get(0).getUrl());
+            System.out.println("");
+
+            for(int i = 1; i < list.size(); i++){
+                System.out.println(list.get(i).getUrl());
+            }
+
+            System.out.println("\n\n");
+        }
     }
 
     private void setTfIdfValues(){
@@ -163,5 +171,17 @@ public class Controller {
             HT ht = WebTextProcessor.getWeightedWords(website, this.websites);
             website.setWords(ht);
         }
+    }
+
+    public boolean validateUrl(String address){
+        try {
+            URL url = new URL(address);
+            URLConnection conn = url.openConnection();
+            conn.connect();
+        } catch (IOException e) {
+            return false;
+        }
+
+        return true;
     }
 }

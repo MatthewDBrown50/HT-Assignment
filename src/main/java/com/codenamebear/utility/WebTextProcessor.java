@@ -16,6 +16,8 @@ import java.util.List;
 
 public class WebTextProcessor {
 
+    private static List<String> listOfAllWords;
+
     public static HT getWeightedWords(Website website, List<Website> websites){
 
         // For all the WordCount objects held by the Website object:
