@@ -15,6 +15,10 @@ public class Word implements Comparable<Word>{
         this.count = 1;
     }
 
+    public void incrementCount(){
+        this.count += 1;
+    }
+
     public String getWord() {
         return word;
     }

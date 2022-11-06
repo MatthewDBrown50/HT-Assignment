@@ -15,6 +15,7 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,18 +23,20 @@ import java.util.List;
 public class Controller {
 
     private final List<Website> websites;
-    private final List<String> ignoredWords;
     private Website userWebsite;
+    private final ArrayList<String> ignoredWords;
     private KMedoidsProducer kMedoidsProducer;
     private ArrayList<ArrayList<Website>> medoids;
 
     public Controller() throws IOException {
 
         // Establish a list of ignored words
-        this.ignoredWords = Files.readAllLines(Paths.get("src/main/resources/filter.txt"), StandardCharsets.UTF_8);
+        List<String> ignoredWordsList = Files.readAllLines(Paths.get("src/main/resources/filter.txt"), StandardCharsets.UTF_8);
+        this.ignoredWords = (ArrayList<String>) ignoredWordsList;
 
         // Establish an arraylist of website objects
         this.websites = new ArrayList<>();
+
     }
 
     public void addWebsite(String url) throws IOException {
@@ -44,7 +47,7 @@ public class Controller {
 
         // Get the total number of words, along with the word count for each word in the text content,
         // then assign them to the website object
-        WebTextProcessor.setWordCounts(content, website, ignoredWords);
+        WebTextProcessor.setWordCounts(content, website, this.ignoredWords);
 
         this.websites.add(website);
         this.userWebsite = website;
@@ -59,7 +62,7 @@ public class Controller {
 
         // Get the total number of words, along with the word count for each word in the text content,
         // then assign them to the website object
-        WebTextProcessor.setWordCounts(content, website, ignoredWords);
+        WebTextProcessor.setWordCounts(content, website, this.ignoredWords);
 
         this.userWebsite = website;
 
@@ -111,7 +114,6 @@ public class Controller {
 
                         newMatchValue += currentMatchValue;
                     }
-
                 }
 
                 // If the content of websites.get(i) is a better match for the user's content than the previously stored
@@ -148,19 +150,6 @@ public class Controller {
         // Establish a categorized list of website lists
         kMedoidsProducer = new KMedoidsProducer(this.websites);
         this.medoids = kMedoidsProducer.getMedoids();
-
-        // TODO: REMOVE THIS
-        for(ArrayList<Website> list : this.medoids){
-
-            System.out.println("CENTER: " + list.get(0).getUrl());
-            System.out.println("");
-
-            for(int i = 1; i < list.size(); i++){
-                System.out.println(list.get(i).getUrl());
-            }
-
-            System.out.println("\n\n");
-        }
     }
 
     private void setTfIdfValues(){

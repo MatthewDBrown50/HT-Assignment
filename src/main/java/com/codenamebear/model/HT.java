@@ -67,6 +67,16 @@ public class HT implements java.io.Serializable {
         }
     }
 
+    public void incrementCount(String key){
+        int h = key.hashCode();
+        int i = h & (table.length - 1);
+        for (Node e = table[i]; e != null; e = e.next) {
+            if (key.equals(e.key)){
+                e.setCount(e.count + 1);
+            }
+        }
+    }
+
     public void setCount(String key, int count) {
         int h = key.hashCode();
         int i = h & (table.length - 1);
@@ -75,8 +85,6 @@ public class HT implements java.io.Serializable {
                 e.setCount(count);
             }
         }
-
-
     }
 
     public int getCount(String key){

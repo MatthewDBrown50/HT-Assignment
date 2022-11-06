@@ -7,6 +7,7 @@ package com.codenamebear.controller;
 import com.codenamebear.view.MainFrame;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class Main {
 

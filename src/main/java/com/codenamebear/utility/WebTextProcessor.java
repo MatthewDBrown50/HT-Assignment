@@ -12,13 +12,17 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class WebTextProcessor {
 
-    private static List<String> listOfAllWords;
+    private final static HT idfCounts = new HT();
+    private static ArrayList<String> ignoredWords;
 
     public static HT getWeightedWords(Website website, List<Website> websites){
+
+
 
         // For all the WordCount objects held by the Website object:
         for(Word word : website.getWords().getKeys()){
@@ -59,7 +63,10 @@ public class WebTextProcessor {
 
     }
 
-    public static void setWordCounts(String text, Website website, List<String> ignoredWords){
+    public static void setWordCounts(String text, Website website, ArrayList<String> wordsToIgnore){
+
+        // Establish list of ignored words
+        ignoredWords = wordsToIgnore;
 
         // Establish wordCount arraylist
         HT words = new HT();
@@ -76,13 +83,12 @@ public class WebTextProcessor {
         for(String textWord : textWords){
 
             // If textWord actually contains a word:
-            if(!textWord.equals("")){
+            if(!textWord.equalsIgnoreCase(" ")){
 
-                // Convert textWord to lowercase
-                String lowerCaseWord = textWord.toLowerCase();
+                if(!filter(textWord)){
 
-                // If the lowercase word is not in the list of filtered words:
-                if(!filter(lowerCaseWord, ignoredWords)){
+                    // Convert textWord to lowercase
+                    String lowerCaseWord = textWord.toLowerCase();
 
                     // Increment the total number of words for the page
                     totalWords++;
@@ -100,11 +106,19 @@ public class WebTextProcessor {
                         words.add(lowerCaseWord);
 
                     }
-
                 }
 
             }
 
+        }
+
+        // Contribute website's words to the idf count
+        for(Word word : words.getKeys()){
+            if(idfCounts.contains(word.getWord())){
+                idfCounts.incrementCount(word.getWord());
+            } else {
+                idfCounts.add(word.getWord());
+            }
         }
 
         // Set the website object's wordCounts and totalWords
@@ -112,7 +126,7 @@ public class WebTextProcessor {
         website.setTotalWords(totalWords);
     }
 
-    private static boolean filter(String word, List<String> ignoredWords){
+    private static boolean filter(String word){
 
         // Return true if word is less than 3 characters and contains only numbers
         if(word.length() < 3){
@@ -141,23 +155,9 @@ public class WebTextProcessor {
     }
 
     private static double idf(List<Website> websites, String word) {
-        double count = 0;
-        double totalWords = 0;
 
-        for(Website website : websites){
+        double count = idfCounts.getCount(word);
 
-            // Count how many times the word appears in the document
-            for(Word nextWord: website.getWords().getKeys()){
-
-                if(nextWord.getWord().equalsIgnoreCase(word)){
-                    count += nextWord.getCount();
-                }
-            }
-
-            // Track the total number of words between all documents
-            totalWords += website.getTotalWords();
-        }
-
-        return Math.log(totalWords / count);
+        return Math.log((double) websites.size()/count);
     }
 }
