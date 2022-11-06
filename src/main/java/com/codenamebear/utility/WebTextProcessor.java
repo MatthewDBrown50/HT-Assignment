@@ -13,20 +13,19 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 public class WebTextProcessor {
 
-    private final static HT idfCounts = new HT(null);
+    private static HT idfCounts = new HT(null);
     private static ArrayList<String> ignoredWords;
 
-    public static HT getWeightedWords(Website website, List<Website> websites){
+    public static HT getWeightedWords(Website website, int numberOfWebsites){
 
         // For all the WordCount objects held by the Website object:
         for(Word word : website.getWords().getKeys()){
 
             // Calculate the word's TFIDF value and store it in the Hash Table
-            double tfIdfValue = getTfIdf(word, website.getTotalWords(), websites);
+            double tfIdfValue = getTfIdf(word, website.getTotalWords(), numberOfWebsites);
 
             website.getWords().setWeight(word.getWord(), tfIdfValue);
 
@@ -35,10 +34,18 @@ public class WebTextProcessor {
         return  website.getWords();
     }
 
-    // Perform TFIDF final calculation
-    public static double getTfIdf(Word wordCount, int totalWords, List<Website> websites) {
+    public static HT getIdfCounts() {
+        return idfCounts;
+    }
 
-        return tf(wordCount, totalWords) * idf(websites, wordCount.getWord());
+    public static void setIdfCounts(HT idfCounts) {
+        WebTextProcessor.idfCounts = idfCounts;
+    }
+
+    // Perform TFIDF final calculation
+    public static double getTfIdf(Word wordCount, int totalWords, int numberOfWebsites) {
+
+        return tf(wordCount, totalWords) * idf(numberOfWebsites, wordCount.getWord());
     }
 
     public static String extractTextFromUrl(String url) throws IOException {
@@ -143,19 +150,17 @@ public class WebTextProcessor {
 
         // Return true if the word is found in the list of words to be ignored
         return ignoredWords.contains(word);
-
     }
 
-    private static double tf(Word wordCount, int totalWords) {
-
+    public static double tf(Word wordCount, int totalWords) {
         // Return how often the word appears in the document as a quantile
         return (double) wordCount.getCount()/totalWords;
     }
 
-    private static double idf(List<Website> websites, String word) {
+    private static double idf(int numberOfWebsites, String word) {
 
         double count = idfCounts.getCount(word);
 
-        return Math.log((double) websites.size()/count);
+        return Math.log((double) numberOfWebsites/count);
     }
 }

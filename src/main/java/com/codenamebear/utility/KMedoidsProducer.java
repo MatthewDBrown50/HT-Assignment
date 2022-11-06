@@ -12,11 +12,12 @@ import java.util.Random;
 
 public class KMedoidsProducer {
 
-    private final static int NUMBER_OF_CENTERS = 7;
+    private final int numberOfMedoids;
     private final List<Website> websites;
     private final ArrayList<ArrayList<Website>> medoids;
 
-    public KMedoidsProducer(List<Website> websites){
+    public KMedoidsProducer(List<Website> websites, int numberOfMedoids){
+        this.numberOfMedoids = numberOfMedoids;
         this.websites = websites;
         medoids = new ArrayList<>();
     }
@@ -31,7 +32,7 @@ public class KMedoidsProducer {
 
         Random random = new Random();
 
-        for(int i = 0; i < NUMBER_OF_CENTERS; i++){
+        for(int i = 0; i < numberOfMedoids; i++){
 
             int index = random.nextInt(websites.size());
 
@@ -50,7 +51,7 @@ public class KMedoidsProducer {
             int placementIndex = 0;
             ArrayList<Word> words = website.getWords().getKeys();
 
-            for(int i = 0; i < NUMBER_OF_CENTERS; i++){
+            for(int i = 0; i < numberOfMedoids; i++){
 
                 // Initialize a value that measures how well content of websites.get(i) matches the
                 // user-entered website's content
