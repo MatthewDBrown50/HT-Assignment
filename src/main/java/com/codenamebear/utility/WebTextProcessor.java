@@ -17,12 +17,10 @@ import java.util.List;
 
 public class WebTextProcessor {
 
-    private final static HT idfCounts = new HT();
+    private final static HT idfCounts = new HT(null);
     private static ArrayList<String> ignoredWords;
 
     public static HT getWeightedWords(Website website, List<Website> websites){
-
-
 
         // For all the WordCount objects held by the Website object:
         for(Word word : website.getWords().getKeys()){
@@ -69,7 +67,7 @@ public class WebTextProcessor {
         ignoredWords = wordsToIgnore;
 
         // Establish wordCount arraylist
-        HT words = new HT();
+        HT words = new HT(website.getUrl());
 
         // Remove all special characters from the text
         text = text.replaceAll("[^a-zA-Z0-9]", " ");

@@ -9,13 +9,14 @@ import com.codenamebear.model.Website;
 import com.codenamebear.model.Word;
 import com.codenamebear.utility.KMedoidsProducer;
 import com.codenamebear.utility.WebTextProcessor;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,7 +26,6 @@ public class Controller {
     private final List<Website> websites;
     private Website userWebsite;
     private final ArrayList<String> ignoredWords;
-    private KMedoidsProducer kMedoidsProducer;
     private ArrayList<ArrayList<Website>> medoids;
 
     public Controller() throws IOException {
@@ -86,46 +86,75 @@ public class Controller {
         // Initialize a match value, to be overwritten each time a better match is found
         double matchValue = 0;
 
-        // For each website in this.websites:
-        for(int i = 0; i < this.websites.size() - 1; i++) {
+        // Initialize the medoid index, which will keep track of which medoid is the best match to the user's url
+        int medoidIndex = 0;
+
+        // For each center in this.medoids:
+        for(int i = 0; i < medoids.size(); i++) {
+
+            Website medoidCenter = this.medoids.get(i).get(0);
 
             // Ignore URLs in the websites.txt document that match the user-entered URL
-            if(!this.websites.get(i).getUrl().equals(this.userWebsite.getUrl())){
+            if(!medoidCenter.getUrl().equals(this.userWebsite.getUrl())){
 
                 // Initialize a value that measures how well content of websites.get(i) matches the
                 // user-entered website's content
-                double newMatchValue = 0;
-
-                for (Word word : words) {
-                    String nextWord = word.getWord();
-
-                    // If the content of websites.get(i) contains the specified word in the user's content:
-                    if (this.websites.get(i).getWords().contains(nextWord)) {
-
-                        // Get the weighted value for the word in the user's document
-                        double userSiteTfIdf = this.userWebsite.getWords().getWeight(word.getWord());
-
-                        // Get the weighted value for the word in the websites.get(i) document
-                        double websiteTfIdf = this.websites.get(i).getWords().getWeight(word.getWord());
-
-                        // Multiply the weights to establish a match value, then add it to the total match value for the
-                        // websites.get(i) document
-                        double currentMatchValue = userSiteTfIdf * websiteTfIdf;
-
-                        newMatchValue += currentMatchValue;
-                    }
-                }
+                double newMatchValue = getMatchValue(words, medoidCenter);
 
                 // If the content of websites.get(i) is a better match for the user's content than the previously stored
                 // match, then overwrite these values
                 if(newMatchValue >= matchValue){
-                    bestMatch = websites.get(i);
+                    bestMatch = medoidCenter;
+                    medoidIndex = i;
+                    matchValue = newMatchValue;
+                }
+            }
+        }
+
+        ArrayList<Website> medoid = this.medoids.get(medoidIndex);
+
+        for(int i = 1; i < medoid.size(); i++){
+            Website website = medoid.get(i);
+
+            if(!website.getUrl().equals(this.userWebsite.getUrl())){
+                // Initialize a value that measures how well content of websites.get(i) matches the
+                // user-entered website's content
+                double newMatchValue = getMatchValue(words, website);
+
+                // If the content of websites.get(i) is a better match for the user's content than the previously stored
+                // match, then overwrite these values
+                if(newMatchValue >= matchValue){
+                    bestMatch = website;
                     matchValue = newMatchValue;
                 }
             }
         }
 
         return "Best Match is: " + bestMatch.getUrl();
+    }
+
+    private double getMatchValue(ArrayList<Word> words, Website website){
+
+        double matchValue = 0;
+
+        for (Word word : words) {
+            String nextWord = word.getWord();
+
+            // If the content of websites.get(i) contains the specified word in the user's content:
+            if (website.getWords().contains(nextWord)) {
+
+                // Get the weighted value for the word in the user's document
+                double userSiteTfIdf = this.userWebsite.getWords().getWeight(word.getWord());
+
+                // Get the weighted value for the word in the websites.get(i) document
+                double websiteTfIdf = website.getWords().getWeight(word.getWord());
+
+                // Multiply the weights to establish a match value, then return it
+                matchValue += userSiteTfIdf * websiteTfIdf;
+            }
+        }
+
+        return matchValue;
     }
 
     public void scrapeContent(){
@@ -144,12 +173,49 @@ public class Controller {
             e.printStackTrace();
         }
 
-        // Establish a Hash Table for the website with weight values for the words
+        // Establish a Hash Table for each website with weight values for the words
         setTfIdfValues();
 
+        // Serialize the websites
+        for(Website website : this.websites){
+            String url = website.getUrl().replaceAll("/", " ");
+            url = url.replaceAll(":", "!");
+            String path = "src/main/resources/" + url + ".ser";
+
+            try{
+                FileOutputStream fileOut = new FileOutputStream(path);
+                ObjectOutputStream out = new ObjectOutputStream(fileOut);
+                out.writeObject(website.getWords());
+                out.close();
+                fileOut.close();
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+
         // Establish a categorized list of website lists
-        kMedoidsProducer = new KMedoidsProducer(this.websites);
+        KMedoidsProducer kMedoidsProducer = new KMedoidsProducer(this.websites);
         this.medoids = kMedoidsProducer.getMedoids();
+
+        // Serialize a list urls for each medoid
+        for(int i = 0; i < this.medoids.size(); i++){
+            ArrayList<String> urls = new ArrayList<>();
+
+            for (Website website : this.medoids.get(i)){
+                urls.add(website.getUrl());
+            }
+
+            try{
+                String centerUrlsPath = "src/main/resources/" + i + ".ser";
+                FileOutputStream fileOut = new FileOutputStream(centerUrlsPath);
+                ObjectOutputStream out = new ObjectOutputStream(fileOut);
+                out.writeObject(urls);
+                out.close();
+                fileOut.close();
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 
     private void setTfIdfValues(){

@@ -7,11 +7,18 @@ package com.codenamebear.model;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 
 public class HT implements java.io.Serializable {
 
-    static final class Node {
+    private final String url;
+
+    public HT(String url) {
+        this.url = url;
+    }
+
+    static final class Node implements Serializable {
         String key;
         int count;
         double tfIdfValue;
@@ -44,6 +51,10 @@ public class HT implements java.io.Serializable {
                 s.writeObject(e.key);
             }
         }
+    }
+
+    public String getUrl() {
+        return url;
     }
 
     public boolean contains(String key) {
