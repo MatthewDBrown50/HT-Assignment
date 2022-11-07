@@ -55,14 +55,8 @@ public class Controller {
         this.userWebsite = website;
     }
 
+    @SuppressWarnings("unchecked")
     public String processUserRequest(String url) throws IOException {
-
-        Website website = new Website(url);
-
-        // Extract the text content from the webpage
-        String content = WebTextProcessor.extractTextFromUrl(url);
-
-        this.userWebsite = website;
 
         // Provide the WebTextProcessor with previously stored idf values
         HT idfValues = new HT(null);
@@ -77,16 +71,11 @@ public class Controller {
         }
         WebTextProcessor.setIdfCounts(idfValues);
 
-        // Get the total number of words, along with the word count for each word in the text content,
-        // then assign them to the website object
-        WebTextProcessor.setWordCounts(content, website, this.ignoredWords);
+        // Set the word counts for the user-entered url
+        addWebsite(url);
 
         // Provide weights to the words tracked for the user-entered URL
-        HT weightedWords = WebTextProcessor.getWeightedWords(this.userWebsite, 100);
-        this.userWebsite.setWords(weightedWords);
-
-        // TODO: Reminder - Last time I checked, the weighted words for this.userWebsite showed
-        //                  strange values (some words had a value of 0.0)
+        setTfIdfValues(this.userWebsite);
 
         // Deserialize medoid url lists and add them to this.medoidsList
         this.medoidsList = new ArrayList<>();
@@ -132,7 +121,7 @@ public class Controller {
             String url = this.medoidsList.get(i).get(0);
 
             // Ignore URLs in the websites.txt document that match the user-entered URL
-            if(url.equals(this.userWebsite.getUrl())){
+            if(!url.equals(this.userWebsite.getUrl())){
 
                 HT medoidCenter = cache.getWebsite(url);
 
@@ -213,7 +202,12 @@ public class Controller {
         }
 
         // Establish a Hash Table for each website with weight values for the words
-        setTfIdfValues();
+        for(Website website : this.websites){
+
+            setTfIdfValues(website);
+
+        }
+
 
         // Serialize the idf values
         String path = "src/main/resources/idfvalues.ser";
@@ -268,14 +262,11 @@ public class Controller {
         }
     }
 
-    private void setTfIdfValues(){
+    private void setTfIdfValues(Website website){
 
-        for(Website website : this.websites){
-
-            // Assign a Hash Table to each website with the words that appear on the page and their weighted values
-            HT ht = WebTextProcessor.getWeightedWords(website, this.websites.size());
-            website.setWords(ht);
-        }
+        // Assign a Hash Table to each website with the words that appear on the page and their weighted values
+        HT ht = WebTextProcessor.getWeightedWords(website, this.websites.size());
+        website.setWords(ht);
     }
 
     public boolean validateUrl(String address){
