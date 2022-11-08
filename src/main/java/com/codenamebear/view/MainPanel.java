@@ -54,7 +54,7 @@ public class MainPanel extends JPanel {
         JButton scrapeButton = new JButton("Re-Scrape Content");
         scrapeButton.setFont(BOLD_FONT);
 
-        JLabel warningLabel = new JLabel("WARNING: This may take a minute");
+        JLabel warningLabel = new JLabel("This will delete and recreate all serialized files");
         warningLabel.setFont(BOLD_FONT);
 
         searchButton.addActionListener(e -> {
@@ -83,9 +83,9 @@ public class MainPanel extends JPanel {
         gc.gridy = 1;
         gc.gridwidth = 2;
         gc.weightx = 1;
-        gc.weighty = 1;
+        gc.weighty = .5;
         gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.insets = new Insets(50, 30, 0, 30);
+        gc.insets = new Insets(0, 30, 0, 30);
         gc.anchor = GridBagConstraints.LAST_LINE_START;
         add(instructionLabel, gc);
 

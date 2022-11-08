@@ -19,7 +19,7 @@ public class MainFrame extends JFrame{
 
         add(mainPanel, BorderLayout.CENTER);
 
-        setSize(600, 850);
+        setSize(900, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
 
