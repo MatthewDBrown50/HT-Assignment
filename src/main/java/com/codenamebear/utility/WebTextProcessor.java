@@ -45,7 +45,7 @@ public class WebTextProcessor {
     // Perform TFIDF final calculation
     public static double getTfIdf(Word wordCount, int totalWords, int numberOfWebsites) {
 
-        return tf(wordCount, totalWords) * idf(numberOfWebsites, wordCount.getWord());
+        return  tf(wordCount, totalWords) * idf(numberOfWebsites, wordCount.getWord());
     }
 
     public static String extractTextFromUrl(String url) throws IOException {
@@ -160,6 +160,8 @@ public class WebTextProcessor {
     private static double idf(int numberOfWebsites, String word) {
 
         double count = idfCounts.getCount(word);
+
+        System.out.println("Word: " + word + "   Count: " + idfCounts.getCount(word) + "   # of sites: " + numberOfWebsites);
 
         return Math.log((double) numberOfWebsites/count);
     }

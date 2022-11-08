@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Controller {
 
@@ -56,7 +57,7 @@ public class Controller {
     }
 
     @SuppressWarnings("unchecked")
-    public String processUserRequest(String url) throws IOException {
+    public String[] processUserRequest(String url) throws IOException {
 
         // Provide the WebTextProcessor with previously stored idf values
         HT idfValues = new HT(null);
@@ -74,8 +75,12 @@ public class Controller {
         // Set the word counts for the user-entered url
         addWebsite(url);
 
+        // Get the number of websites being considered for idf values
+        File directory=new File("src/main/resources/hashtables");
+        int fileCount= Objects.requireNonNull(directory.list()).length;
+
         // Provide weights to the words tracked for the user-entered URL
-        setTfIdfValues(this.userWebsite);
+        setTfIdfValues(this.userWebsite, fileCount);
 
         // Deserialize medoid url lists and add them to this.medoidsList
         this.medoidsList = new ArrayList<>();
@@ -99,7 +104,7 @@ public class Controller {
         return report();
     }
 
-    private String report(){
+    private String[] report(){
 
         Cache cache = new Cache();
 
@@ -158,7 +163,20 @@ public class Controller {
             }
         }
 
-        return "Best Match is: " + bestMatch;
+        String[] results = new String[medoid.size() + 1];
+
+        results[0] = bestMatch;
+
+        int resultsIndex = 0;
+
+        for(String url : medoid){
+            if(!url.equals(results[resultsIndex])){
+                resultsIndex++;
+                results[resultsIndex] = url;
+            }
+        }
+
+        return results;
     }
 
     private double getMatchValue(ArrayList<Word> words, HT website){
@@ -187,6 +205,28 @@ public class Controller {
 
     public void scrapeContent(){
 
+        deleteFolder(new File("src/main/resources/hashtables"));
+        deleteFolder(new File("src/main/resources/medoids"));
+        File idfvaluesFile = new File("src/main/resources/idfvalues.ser");
+
+        if(!idfvaluesFile.delete()){
+            System.out.println("failed to delete idfvalues file");
+        }
+
+        File dir = new File("src/main/resources/hashtables");
+        if(!dir.exists()){
+            if(!dir.mkdir()){
+                System.out.println("failed to create hashtables folder");
+            }
+        }
+
+        dir = new File("src/main/resources/medoids");
+        if(!dir.exists()){
+            if(!dir.mkdir()){
+                System.out.println("failed to create medoids folder");
+            }
+        }
+
         try {
             // Store a list of URL addresses from the 'websites.txt' resource
             List<String> urls = Files.readAllLines(Paths.get("src/main/resources/websites.txt"), StandardCharsets.UTF_8);
@@ -204,7 +244,7 @@ public class Controller {
         // Establish a Hash Table for each website with weight values for the words
         for(Website website : this.websites){
 
-            setTfIdfValues(website);
+            setTfIdfValues(website, this.websites.size());
 
         }
 
@@ -262,10 +302,10 @@ public class Controller {
         }
     }
 
-    private void setTfIdfValues(Website website){
+    private void setTfIdfValues(Website website, int numberOfWebsites){
 
         // Assign a Hash Table to each website with the words that appear on the page and their weighted values
-        HT ht = WebTextProcessor.getWeightedWords(website, this.websites.size());
+        HT ht = WebTextProcessor.getWeightedWords(website, numberOfWebsites);
         website.setWords(ht);
     }
 
@@ -279,5 +319,23 @@ public class Controller {
         }
 
         return true;
+    }
+
+    public void deleteFolder(File folder) {
+        File[] files = folder.listFiles();
+        if(files!=null) { //some JVMs return null for empty dirs
+            for(File f: files) {
+                if(f.isDirectory()) {
+                    deleteFolder(f);
+                } else {
+                    if(!f.delete()){
+                        System.out.println("failed to delete file");
+                    }
+                }
+            }
+        }
+        if(!folder.delete()){
+            System.out.println("failed to delete folder");
+        }
     }
 }

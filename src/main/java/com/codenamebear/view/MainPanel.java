@@ -8,13 +8,20 @@ import com.codenamebear.controller.Controller;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MainPanel extends JPanel {
 
     private final JTextField urlField;
     private final JLabel resultLabel;
+    private final JLabel otherResultsLabel;
+    private final JList<String> resultsList;
     private final Controller controller;
+    private final static Font BOLD_FONT = new Font("San-Serif", Font.BOLD, 14);
+    private final static Font PLAIN_FONT = new Font("San-Serif", Font.PLAIN, 14);
 
     public MainPanel(Controller controller) {
 
@@ -25,11 +32,30 @@ public class MainPanel extends JPanel {
         setPreferredSize(dim);
 
         JLabel instructionLabel = new JLabel("Enter URL here:");
+        instructionLabel.setFont(BOLD_FONT);
+
         urlField = new JTextField();
+
         JButton searchButton = new JButton("Search for Related URL");
-        resultLabel = new JLabel("Result will appear here.");
+        searchButton.setFont(BOLD_FONT);
+
+        resultLabel = new JLabel("Results will appear here.");
+        resultLabel.setFont(BOLD_FONT);
+
+        otherResultsLabel = new JLabel("More related URLs:");
+        otherResultsLabel.setFont(BOLD_FONT);
+        otherResultsLabel.setVisible(false);
+
+        resultsList = new JList<>();
+        resultsList.setFont(PLAIN_FONT);
+        resultsList.setBackground(new Color(238, 238, 238));
+        resultsList.setVisible(false);
+
         JButton scrapeButton = new JButton("Re-Scrape Content");
-        JLabel warningLabel = new JLabel("WARNING: This will take several minutes!");
+        scrapeButton.setFont(BOLD_FONT);
+
+        JLabel warningLabel = new JLabel("WARNING: This may take a minute");
+        warningLabel.setFont(BOLD_FONT);
 
         searchButton.addActionListener(e -> {
 
@@ -60,15 +86,17 @@ public class MainPanel extends JPanel {
         gc.weighty = 1;
         gc.fill = GridBagConstraints.HORIZONTAL;
         gc.insets = new Insets(50, 30, 0, 30);
+        gc.anchor = GridBagConstraints.LAST_LINE_START;
         add(instructionLabel, gc);
 
         gc.gridx = 1;
         gc.gridy = 2;
         gc.gridwidth = 2;
         gc.weightx = 1;
-        gc.weighty = 1;
+        gc.weighty = .2;
         gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.insets = new Insets(0, 30, 0, 30);
+        gc.anchor = GridBagConstraints.LINE_START;
+        gc.insets = new Insets(10, 30, 10, 30);
         add(urlField, gc);
 
         gc.gridx = 1;
@@ -78,19 +106,40 @@ public class MainPanel extends JPanel {
         gc.weighty = 1;
         gc.fill = GridBagConstraints.NONE;
         gc.insets = new Insets(0, 30, 0, 30);
+        gc.anchor = GridBagConstraints.FIRST_LINE_START;
         add(searchButton, gc);
 
         gc.gridx = 1;
         gc.gridy = 4;
         gc.gridwidth = 2;
-        gc.weightx = 1;
+        gc.weightx = .5;
         gc.weighty = 1;
         gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.insets = new Insets(0, 30, 50, 30);
+        gc.insets = new Insets(30, 30, 30, 30);
         add(resultLabel, gc);
 
         gc.gridx = 1;
         gc.gridy = 5;
+        gc.gridwidth = 2;
+        gc.weightx = 1;
+        gc.weighty = 1;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.insets = new Insets(0, 30, 10, 30);
+        gc.anchor = GridBagConstraints.LAST_LINE_START;
+        add(otherResultsLabel, gc);
+
+        gc.gridx = 1;
+        gc.gridy = 6;
+        gc.gridwidth = 2;
+        gc.weightx = 1;
+        gc.weighty = 1;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.insets = new Insets(0, 30, 50, 30);
+        gc.anchor = GridBagConstraints.FIRST_LINE_START;
+        add(resultsList, gc);
+
+        gc.gridx = 1;
+        gc.gridy = 7;
         gc.gridwidth = 1;
         gc.weightx = 1;
         gc.weighty = 1;
@@ -100,7 +149,7 @@ public class MainPanel extends JPanel {
         add(scrapeButton, gc);
 
         gc.gridx = 2;
-        gc.gridy = 5;
+        gc.gridy = 7;
         gc.gridwidth = 1;
         gc.weightx = 1;
         gc.weighty = 1;
@@ -121,13 +170,20 @@ public class MainPanel extends JPanel {
         if (validUrl) {
             try {
                 // Have controller process the request, then provide the result to the user
-                String result = controller.processUserRequest(url);
-                resultLabel.setText(result);
+                String[] results = controller.processUserRequest(url);
+                resultLabel.setText("Best Match is: " + results[0]);
+                otherResultsLabel.setVisible(true);
+
+                String[] modifiedResults = Arrays.copyOfRange(results, 1, results.length);
+                resultsList.setListData(modifiedResults);
+                resultsList.setVisible(true);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
         } else {
             resultLabel.setText("Invalid URL! Please try again.");
+            otherResultsLabel.setVisible(false);
+            otherResultsLabel.setVisible(false);
         }
     }
 }
