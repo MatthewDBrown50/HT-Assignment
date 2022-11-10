@@ -4,6 +4,7 @@
 
 package com.codenamebear.utility;
 
+import com.codenamebear.model.EHT;
 import com.codenamebear.model.HT;
 import com.codenamebear.model.Website;
 import com.codenamebear.model.Word;
@@ -16,8 +17,8 @@ import java.util.ArrayList;
 
 public class WebTextProcessor {
 
-    private static HT idfCounts = new HT(null);
     private static ArrayList<String> ignoredWords;
+    private static final EHT idfCounts = new EHT();
 
     public static HT getWeightedWords(Website website, int numberOfWebsites){
 
@@ -32,14 +33,6 @@ public class WebTextProcessor {
         }
 
         return  website.getWords();
-    }
-
-    public static HT getIdfCounts() {
-        return idfCounts;
-    }
-
-    public static void setIdfCounts(HT idfCounts) {
-        WebTextProcessor.idfCounts = idfCounts;
     }
 
     // Perform TFIDF final calculation
@@ -122,7 +115,7 @@ public class WebTextProcessor {
             if(idfCounts.contains(word.getWord())){
                 idfCounts.incrementCount(word.getWord());
             } else {
-                idfCounts.add(word.getWord());
+                idfCounts.put(word.getWord(), 1);
             }
         }
 
@@ -159,7 +152,7 @@ public class WebTextProcessor {
 
     private static double idf(int numberOfWebsites, String word) {
 
-        double count = idfCounts.getCount(word);
+        double count = idfCounts.get(word);
 
         return Math.log((double) numberOfWebsites/count);
     }

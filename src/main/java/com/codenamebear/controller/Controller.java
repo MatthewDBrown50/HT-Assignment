@@ -4,6 +4,7 @@
 
 package com.codenamebear.controller;
 
+import com.codenamebear.model.EHT;
 import com.codenamebear.model.HT;
 import com.codenamebear.model.Website;
 import com.codenamebear.model.Word;
@@ -58,19 +59,6 @@ public class Controller {
 
     @SuppressWarnings("unchecked")
     public String[] processUserRequest(String url) throws IOException {
-
-        // Provide the WebTextProcessor with previously stored idf values
-        HT idfValues = new HT(null);
-        try {
-            FileInputStream fileIn = new FileInputStream("src/main/resources/idfvalues.ser");
-            ObjectInputStream inputStream = new ObjectInputStream(fileIn);
-            idfValues = (HT) inputStream.readObject();
-            inputStream.close();
-            fileIn.close();
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        WebTextProcessor.setIdfCounts(idfValues);
 
         // Set the word counts for the user-entered url
         addWebsite(url);
@@ -251,12 +239,6 @@ public class Controller {
         deleteFolder(new File("src/main/resources/hashtables"));
         deleteFolder(new File("src/main/resources/medoids"));
 
-        // Delete idfvalues file
-        File idfvaluesFile = new File("src/main/resources/idfvalues.ser");
-        if(!idfvaluesFile.delete()){
-            System.out.println("failed to delete idfvalues file");
-        }
-
         // Create folder for storing hash tables
         File dir = new File("src/main/resources/hashtables");
         if(!dir.exists()){
@@ -292,19 +274,6 @@ public class Controller {
 
             setTfIdfValues(website, this.websites.size());
 
-        }
-
-
-        // Serialize the idf values
-        String path = "src/main/resources/idfvalues.ser";
-        try{
-            FileOutputStream fileOut = new FileOutputStream(path);
-            ObjectOutputStream out = new ObjectOutputStream(fileOut);
-            out.writeObject(WebTextProcessor.getIdfCounts());
-            out.close();
-            fileOut.close();
-        } catch (Exception e){
-            e.printStackTrace();
         }
 
         // Serialize the website hash tables
