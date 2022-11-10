@@ -161,8 +161,6 @@ public class WebTextProcessor {
 
         double count = idfCounts.getCount(word);
 
-        System.out.println("Word: " + word + "   Count: " + idfCounts.getCount(word) + "   # of sites: " + numberOfWebsites);
-
         return Math.log((double) numberOfWebsites/count);
     }
 }

@@ -76,11 +76,11 @@ public class Controller {
         addWebsite(url);
 
         // Get the number of websites being considered for idf values
-        File directory=new File("src/main/resources/hashtables");
-        int fileCount= Objects.requireNonNull(directory.list()).length;
+        File directory = new File("src/main/resources/hashtables");
+        int fileCount = Objects.requireNonNull(directory.list()).length;
 
         // Provide weights to the words tracked for the user-entered URL
-        setTfIdfValues(this.userWebsite, fileCount);
+        setTfIdfValues(this.userWebsite, fileCount+1);
 
         // Deserialize medoid url lists and add them to this.medoidsList
         this.medoidsList = new ArrayList<>();
@@ -106,6 +106,7 @@ public class Controller {
 
     private String[] report(){
 
+        // Establish a cache for managing website retrieval
         Cache cache = new Cache();
 
         // Get the weighted words associated with the user-entered URL and store them in an arraylist
@@ -120,9 +121,13 @@ public class Controller {
         // Initialize the medoid index, which will keep track of which medoid is the best match to the user's url
         int medoidIndex = 0;
 
+        // Establish a boolean to keep track of whether the user-entered URL matches a previously stored URL
+        boolean userUrlIsUnique = true;
+
         // For each center in this.medoids:
         for(int i = 0; i < this.numberOfMedoids; i++) {
 
+            // Extract the URL
             String url = this.medoidsList.get(i).get(0);
 
             // Ignore URLs in the websites.txt document that match the user-entered URL
@@ -141,6 +146,8 @@ public class Controller {
                     medoidIndex = i;
                     matchValue = newMatchValue;
                 }
+            } else {
+                userUrlIsUnique = false;
             }
         }
 
@@ -159,6 +166,41 @@ public class Controller {
                 if(newMatchValue >= matchValue){
                     bestMatch = medoid.get(i);
                     matchValue = newMatchValue;
+                }
+            } else {
+                userUrlIsUnique = false;
+            }
+        }
+
+        if(userUrlIsUnique){
+            // Serialize user site
+            serializeWebsiteHashTable(this.userWebsite);
+
+            // Add site to best medoid match
+            this.medoidsList.get(medoidIndex).add(this.userWebsite.getUrl());
+
+            // Delete medoids folder
+            deleteFolder(new File("src/main/resources/medoids"));
+
+            // Create folder for storing medoids list
+            File dir = new File("src/main/resources/medoids");
+            if(!dir.exists()){
+                if(!dir.mkdir()){
+                    System.out.println("failed to create medoids folder");
+                }
+            }
+
+            // Reserialize medoids
+            for(int i = 0; i < this.medoidsList.size(); i++){
+                try{
+                    String centerUrlsPath = "src/main/resources/medoids/medoid" + i + ".ser";
+                    FileOutputStream fileOut = new FileOutputStream(centerUrlsPath);
+                    ObjectOutputStream out = new ObjectOutputStream(fileOut);
+                    out.writeObject(this.medoidsList.get(i));
+                    out.close();
+                    fileOut.close();
+                } catch (Exception e){
+                    e.printStackTrace();
                 }
             }
         }
@@ -205,14 +247,17 @@ public class Controller {
 
     public void scrapeContent(){
 
+        // Delete hashtables and medoids folders
         deleteFolder(new File("src/main/resources/hashtables"));
         deleteFolder(new File("src/main/resources/medoids"));
-        File idfvaluesFile = new File("src/main/resources/idfvalues.ser");
 
+        // Delete idfvalues file
+        File idfvaluesFile = new File("src/main/resources/idfvalues.ser");
         if(!idfvaluesFile.delete()){
             System.out.println("failed to delete idfvalues file");
         }
 
+        // Create folder for storing hash tables
         File dir = new File("src/main/resources/hashtables");
         if(!dir.exists()){
             if(!dir.mkdir()){
@@ -220,6 +265,7 @@ public class Controller {
             }
         }
 
+        // Create folder for storing medoids list
         dir = new File("src/main/resources/medoids");
         if(!dir.exists()){
             if(!dir.mkdir()){
@@ -261,20 +307,9 @@ public class Controller {
             e.printStackTrace();
         }
 
-        // Serialize the websites
+        // Serialize the website hash tables
         for(Website website : this.websites){
-            String url = website.getUrl().replaceAll("/", " ");
-            url = url.replaceAll(":", "!");
-            String sitePath = "src/main/resources/hashtables/" + url + ".ser";
-            try{
-                FileOutputStream fileOut = new FileOutputStream(sitePath);
-                ObjectOutputStream out = new ObjectOutputStream(fileOut);
-                out.writeObject(website.getWords());
-                out.close();
-                fileOut.close();
-            } catch (Exception e){
-                e.printStackTrace();
-            }
+            serializeWebsiteHashTable(website);
         }
 
         // Establish a categorized list of website lists
@@ -282,6 +317,27 @@ public class Controller {
         ArrayList<ArrayList<Website>> medoids = kMedoidsProducer.getMedoids();
 
         // Serialize a list urls for each medoid
+        serializeMedoids(medoids);
+    }
+
+    // Serialize website hash table
+    private void serializeWebsiteHashTable(Website website){
+        String url = website.getUrl().replaceAll("/", " ");
+        url = url.replaceAll(":", "!");
+        String sitePath = "src/main/resources/hashtables/" + url + ".ser";
+        try{
+            FileOutputStream fileOut = new FileOutputStream(sitePath);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(website.getWords());
+            out.close();
+            fileOut.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    // Serialize a list urls for each medoid
+    private void serializeMedoids(ArrayList<ArrayList<Website>> medoids){
         for(int i = 0; i < medoids.size(); i++){
             ArrayList<String> urls = new ArrayList<>();
 
