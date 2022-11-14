@@ -1,7 +1,3 @@
-//==========================================
-//  AUTHOR:    Matthew D Brown
-//==========================================
-
 package com.codenamebear.controller;
 
 import com.codenamebear.model.HT;
@@ -240,7 +236,9 @@ public class Controller {
         int fileNumber = 0;
 
         while(file.exists()){
-            file.delete();
+            if(!file.delete()){
+                System.out.println("Failed to delete file");
+            }
             fileNumber++;
             filePath = "src/main/resources/IdfRafs/idf" + fileNumber + ".data";
             file = new File(filePath);

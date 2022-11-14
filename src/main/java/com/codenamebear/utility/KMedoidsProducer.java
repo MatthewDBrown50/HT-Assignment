@@ -6,10 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-/******************************************
- Created on 10/30/2022 by Matthew D Brown
- *******************************************/
-
 public class KMedoidsProducer {
 
     private final int numberOfMedoids;

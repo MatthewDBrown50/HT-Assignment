@@ -1,16 +1,10 @@
-//==========================================
-//  AUTHOR:    Matthew D Brown
-//==========================================
-
 package com.codenamebear.view;
 
 import com.codenamebear.controller.Controller;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 public class MainPanel extends JPanel {

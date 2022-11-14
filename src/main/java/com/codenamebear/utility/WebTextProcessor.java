@@ -1,7 +1,3 @@
-//==========================================
-//  AUTHOR:    Matthew D Brown
-//==========================================
-
 package com.codenamebear.utility;
 
 import com.codenamebear.model.HT;

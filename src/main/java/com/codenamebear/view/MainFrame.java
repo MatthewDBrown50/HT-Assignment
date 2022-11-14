@@ -1,7 +1,3 @@
-//==========================================
-//  AUTHOR:    Matthew D Brown
-//==========================================
-
 package com.codenamebear.view;
 
 import com.codenamebear.controller.Controller;

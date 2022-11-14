@@ -1,7 +1,3 @@
-//==========================================
-//  AUTHOR:    Matthew D Brown
-//==========================================
-
 package com.codenamebear.model;
 
 import java.io.IOException;
@@ -78,16 +74,6 @@ public class HT implements java.io.Serializable {
         for (Node e = table[i]; e != null; e = e.next) {
             if (key.equals(e.key)){
                 e.setTfIdfValue(weight);
-            }
-        }
-    }
-
-    public void incrementCount(String key){
-        int h = key.hashCode();
-        int i = h & (table.length - 1);
-        for (Node e = table[i]; e != null; e = e.next) {
-            if (key.equals(e.key)){
-                e.setCount(e.count + 1);
             }
         }
     }

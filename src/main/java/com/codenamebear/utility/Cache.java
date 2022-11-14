@@ -5,10 +5,6 @@ import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.util.*;
 
-/******************************************
- Created on 11/6/2022 by Matthew D Brown
- *******************************************/
-
 public class Cache {
 
     static class Address {
