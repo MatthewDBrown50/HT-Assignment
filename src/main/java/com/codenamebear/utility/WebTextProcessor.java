@@ -4,8 +4,8 @@
 
 package com.codenamebear.utility;
 
-import com.codenamebear.model.EHT;
 import com.codenamebear.model.HT;
+import com.codenamebear.model.PersistentHT;
 import com.codenamebear.model.Website;
 import com.codenamebear.model.Word;
 import org.jsoup.Jsoup;
@@ -18,7 +18,8 @@ import java.util.ArrayList;
 public class WebTextProcessor {
 
     private static ArrayList<String> ignoredWords;
-    private static final EHT idfCounts = new EHT();
+    private static final PersistentHT idfCounts = new PersistentHT();
+
 
     public static HT getWeightedWords(Website website, int numberOfWebsites){
 
@@ -61,7 +62,7 @@ public class WebTextProcessor {
 
     }
 
-    public static void setWordCounts(String text, Website website, ArrayList<String> wordsToIgnore){
+    public static void setWordCounts(String text, Website website, ArrayList<String> wordsToIgnore) throws IOException {
 
         // Establish list of ignored words
         ignoredWords = wordsToIgnore;
@@ -76,6 +77,7 @@ public class WebTextProcessor {
         String[] textWords = text.split("\\s");
 
         int totalWords = 0;
+        PersistentHT pht = new PersistentHT();
 
         // For each word in the array:
         for(String textWord : textWords){
@@ -83,7 +85,7 @@ public class WebTextProcessor {
             // If textWord actually contains a word:
             if(!textWord.equalsIgnoreCase(" ")){
 
-                if(!filter(textWord)){
+                if(!filter(textWord) && (textWord.length() < pht.getMAX_WORD_STRING_SIZE())){
 
                     // Convert textWord to lowercase
                     String lowerCaseWord = textWord.toLowerCase();
@@ -110,12 +112,16 @@ public class WebTextProcessor {
 
         }
 
+
         // Contribute website's words to the idf count
         for(Word word : words.getKeys()){
             if(idfCounts.contains(word.getWord())){
-                idfCounts.incrementCount(word.getWord());
+
+                idfCounts.incrementCount(word.getWord(), 1);
+
             } else {
-                idfCounts.put(word.getWord(), 1);
+
+                idfCounts.add(word.getWord(), word.getCount());
             }
         }
 
@@ -152,7 +158,7 @@ public class WebTextProcessor {
 
     private static double idf(int numberOfWebsites, String word) {
 
-        double count = idfCounts.get(word);
+        double count = idfCounts.getCount(word);
 
         return Math.log((double) numberOfWebsites/count);
     }

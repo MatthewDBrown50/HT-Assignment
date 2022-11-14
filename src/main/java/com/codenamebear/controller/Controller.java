@@ -4,7 +4,6 @@
 
 package com.codenamebear.controller;
 
-import com.codenamebear.model.EHT;
 import com.codenamebear.model.HT;
 import com.codenamebear.model.Website;
 import com.codenamebear.model.Word;
@@ -200,7 +199,7 @@ public class Controller {
         int resultsIndex = 0;
 
         for(String url : medoid){
-            if(!url.equals(results[resultsIndex])){
+            if(!url.equals(results[resultsIndex]) && !url.equals(this.userWebsite.getUrl())){
                 resultsIndex++;
                 results[resultsIndex] = url;
             }
@@ -234,6 +233,18 @@ public class Controller {
     }
 
     public void scrapeContent(){
+
+        // Delete RAFs
+        String filePath = "src/main/resources/IdfRafs/idf.data";
+        File file = new File(filePath);
+        int fileNumber = 0;
+
+        while(file.exists()){
+            file.delete();
+            fileNumber++;
+            filePath = "src/main/resources/IdfRafs/idf" + fileNumber + ".data";
+            file = new File(filePath);
+        }
 
         // Delete hashtables and medoids folders
         deleteFolder(new File("src/main/resources/hashtables"));

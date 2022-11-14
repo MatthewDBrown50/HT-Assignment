@@ -53,6 +53,10 @@ public class HT implements java.io.Serializable {
         }
     }
 
+    public int getSize() {
+        return size;
+    }
+
     public String getUrl() {
         return url;
     }

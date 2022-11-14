@@ -54,7 +54,7 @@ public class MainPanel extends JPanel {
         JButton scrapeButton = new JButton("Re-Scrape Content");
         scrapeButton.setFont(BOLD_FONT);
 
-        JLabel warningLabel = new JLabel("This will delete and recreate all serialized files");
+        JLabel warningLabel = new JLabel("WARNING: This may take several minutes!");
         warningLabel.setFont(BOLD_FONT);
 
         searchButton.addActionListener(e -> {
