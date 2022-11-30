@@ -1,35 +1,37 @@
 package com.codenamebear.utility;
 
+import com.codenamebear.model.GraphNode;
 import com.codenamebear.model.HT;
-import com.codenamebear.model.PersistentHT;
-import com.codenamebear.model.Website;
 import com.codenamebear.model.Word;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 
 public class WebTextProcessor {
 
     private static ArrayList<String> ignoredWords;
-    private static final PersistentHT idfCounts = new PersistentHT();
+    private static final HT idfCounts = new HT(null);
 
+    public static HT getWeightedWords(GraphNode node, int numberOfWebsites){
 
-    public static HT getWeightedWords(Website website, int numberOfWebsites){
+        System.out.println("/n" + node.getUrl());
+        System.out.println(node.getValues());
 
         // For all the WordCount objects held by the Website object:
-        for(Word word : website.getWords().getKeys()){
+        for(Word word : node.getValues().getKeys()){
 
             // Calculate the word's TFIDF value and store it in the Hash Table
-            double tfIdfValue = getTfIdf(word, website.getTotalWords(), numberOfWebsites);
+            double tfIdfValue = getTfIdf(word, node.getTotalWords(), numberOfWebsites);
 
-            website.getWords().setWeight(word.getWord(), tfIdfValue);
+            node.getValues().setWeight(word.getWord(), tfIdfValue);
 
         }
 
-        return  website.getWords();
+        return  node.getValues();
     }
 
     // Perform TFIDF final calculation
@@ -58,13 +60,13 @@ public class WebTextProcessor {
 
     }
 
-    public static void setWordCounts(String text, Website website, ArrayList<String> wordsToIgnore) throws IOException {
+    public static void setWordCounts(String text, GraphNode node, ArrayList<String> wordsToIgnore) {
 
         // Establish list of ignored words
         ignoredWords = wordsToIgnore;
 
         // Establish wordCount arraylist
-        HT words = new HT(website.getUrl());
+        HT words = new HT(node.getUrl());
 
         // Remove all special characters from the text
         text = text.replaceAll("[^a-zA-Z0-9]", " ");
@@ -73,7 +75,6 @@ public class WebTextProcessor {
         String[] textWords = text.split("\\s");
 
         int totalWords = 0;
-        PersistentHT pht = new PersistentHT();
 
         // For each word in the array:
         for(String textWord : textWords){
@@ -81,7 +82,7 @@ public class WebTextProcessor {
             // If textWord actually contains a word:
             if(!textWord.equalsIgnoreCase(" ")){
 
-                if(!filter(textWord) && (textWord.length() < pht.getMAX_WORD_STRING_SIZE())){
+                if(!filter(textWord)){
 
                     // Convert textWord to lowercase
                     String lowerCaseWord = textWord.toLowerCase();
@@ -108,22 +109,21 @@ public class WebTextProcessor {
 
         }
 
-
-        // Contribute website's words to the idf count
+        // Contribute node's words to the idf count
         for(Word word : words.getKeys()){
             if(idfCounts.contains(word.getWord())){
 
-                idfCounts.incrementCount(word.getWord(), 1);
+                idfCounts.setCount(word.getWord(), idfCounts.getCount(word.getWord()) + 1);
 
             } else {
 
-                idfCounts.add(word.getWord(), word.getCount());
+                idfCounts.add(word.getWord());
             }
         }
 
-        // Set the website object's wordCounts and totalWords
-        website.setWords(words);
-        website.setTotalWords(totalWords);
+        // Set the node object's wordCounts and totalWords
+        node.setValues(words);
+        node.setTotalWords(totalWords);
     }
 
     private static boolean filter(String word){
