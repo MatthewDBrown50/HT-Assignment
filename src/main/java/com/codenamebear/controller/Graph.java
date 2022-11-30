@@ -34,6 +34,80 @@ public class Graph {
     record CostNode(String url, double cost) {}
 
     /**
+     * CHECK TO SEE IF ANY OF THE ROOTS ARE THE NODE WE'RE LOOKING FOR.
+     * IF NOT, THEN CALL searchNeighbors() FOR EACH NEIGHBOR OF EACH ROOT
+     */
+    public GraphNode getNode(String sourceUrl){
+
+        // Initialize foundNode to null so that it doesn't return the result from a previous search
+        this.foundNode = null;
+
+        // Establish a hashset to keep track of which nodes have been checked.
+        Set<String> settled = new HashSet<>();
+
+        // For each root node:
+        for(GraphNode root : this.roots){
+
+            // If the root is the node we're looking for, return it
+            if(root.getUrl().equals(sourceUrl)){
+                return root;
+
+                // Otherwise:
+            } else {
+
+                // Mark the root as settled
+                settled.add(root.getUrl());
+
+                // For each neighbor of the root:
+                for (GraphNode neighbor : root.getNeighbors()){
+
+                    // Check the neighbor node, as well as its neighbors
+                    GraphNode sourceNode = searchNeighbors(neighbor, sourceUrl, settled);
+
+                    // If a node was returned, and it was the one we're looking for, then assign it to the return
+                    if(sourceNode != null){
+                        if (sourceNode.getUrl().equals(sourceUrl)){
+                            this.foundNode = sourceNode;
+                        }
+                    }
+
+                }
+            }
+        }
+        return this.foundNode;
+    }
+
+    /**
+     * DETERMINE IF THE NODE IS THE ONE WE'RE LOOKING FOR
+     * IF IT'S NOT, THEN CALL THIS METHOD RECURSIVELY WITH
+     *   EACH OF THE NODE'S NEIGHBORS (EXCEPT ONES THAT HAVE BEEN SETTLED)
+     */
+    private GraphNode searchNeighbors(GraphNode node, String sourceUrl, Set<String> settled){
+
+        // If this node is the one we're searching for then assign it to foundNode
+        if(node.getUrl().equals(sourceUrl)){
+
+            this.foundNode = node;
+
+            // Otherwise:
+        } else {
+
+            // Mark the node as settled
+            settled.add(node.getUrl());
+
+            // For each neighbor that isn't 'settled', call searchNeighbors() with that node
+            for(GraphNode neighbor : node.getNeighbors()){
+
+                if(!settled.contains(neighbor.getUrl())){
+                    searchNeighbors(neighbor, sourceUrl,settled);
+                }
+            }
+        }
+
+        return this.foundNode;
+    }
+
+    /**
      * RUN dijkstra() WITH THE SPECIFIED sourceUrl AND destinationUrl
      */
     public ArrayList<String> getShortestPath(String sourceUrl, String destinationUrl){
@@ -104,82 +178,6 @@ public class Graph {
             // We will never see this warning if everything is implemented correctly
             System.out.println("Something went wrong: sourceNode was null in Graph.dijkstra()");
         }
-    }
-
-    // TODO: FIGURE OUT WHY getNode() ISN'T WORKING CORRECTLY
-
-    /**
-     * CHECK TO SEE IF ANY OF THE ROOTS ARE THE NODE WE'RE LOOKING FOR.
-     * IF NOT, THEN CALL searchNeighbors() FOR EACH NEIGHBOR OF EACH ROOT
-     */
-    public GraphNode getNode(String sourceUrl){
-
-        // Establish a hashset to keep track of which nodes have been checked.
-        Set<String> settled = new HashSet<>();
-
-        // For each root node:
-        for(GraphNode root : this.roots){
-
-            // If the root is the node we're looking for, return it
-            if(root.getUrl().equals(sourceUrl)){
-                return root;
-
-                // Otherwise:
-            } else {
-
-                // Mark the root as settled
-                settled.add(root.getUrl());
-
-                // For each neighbor of the root:
-                for (GraphNode neighbor : root.getNeighbors()){
-
-                    // Check the neighbor node, as well as its neighbors
-                    GraphNode sourceNode = searchNeighbors(neighbor, sourceUrl, settled);
-
-                    // If a node was returned, and it was the one we're looking for, then return it
-                    if(sourceNode != null){
-                        if (sourceNode.getUrl().equals(sourceUrl)){
-                            return sourceNode;
-                        }
-                    }
-
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * DETERMINE IF THE NODE IS THE ONE WE'RE LOOKING FOR
-     * IF IT'S NOT, THEN CALL THIS METHOD RECURSIVELY WITH
-     *   EACH OF THE NODE'S NEIGHBORS (EXCEPT ONES THAT HAVE BEEN SETTLED)
-     */
-    private GraphNode searchNeighbors(GraphNode node, String sourceUrl, Set<String> settled){
-
-        // Establish a return node
-        this.foundNode = null;
-
-        // If this node is the one we're searching for then assign it to foundNode
-        if(node.getUrl().equals(sourceUrl)){
-
-            this.foundNode = node;
-
-            // Otherwise:
-        } else {
-
-            // Mark the node as settled
-            settled.add(node.getUrl());
-
-            // For each neighbor that isn't 'settled', call searchNeighbors() with that node
-            for(GraphNode neighbor : node.getNeighbors()){
-
-                if(!settled.contains(neighbor.getUrl())){
-                    searchNeighbors(neighbor, sourceUrl,settled);
-                }
-            }
-        }
-
-        return this.foundNode;
     }
 
     private void processNeighbors(GraphNode source, String destinationUrl,

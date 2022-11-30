@@ -77,12 +77,24 @@ public class Scraper {
         // Finish populating the graph
         populateGraph();
 
+
+        // TODO: REMOVE THIS LOOP
+        for(String url : this.websites){
+
+            GraphNode node = graph.getNode(url);
+            System.out.println("\nURL: " + url);
+            System.out.println("Node URL: " + node.getUrl());
+            System.out.println("Values: " + node.getValues());
+        }
+
+
+
         // Add TF-IDF values to the hashtable for each GraphNode
         for(String url : this.websites){
 
             GraphNode node = graph.getNode(url);
 
-            System.out.println("\nSetting weights for: " + node.getUrl() + " with values: " + node.getValues());
+//            System.out.println("\nSetting weights for: " + node.getUrl() + " with values: " + node.getValues());
 
             setTfIdfValues(node, this.websites.size());
 
@@ -161,11 +173,10 @@ public class Scraper {
             // For each neighbor that was in the 'allNeighbors' list:
             for(String url : allNeighborsCopy){
 
-                // TODO: should this really be a new node?
-                GraphNode newNode = new GraphNode(url);
+                // Process links for the neighbor and assign them to the newNeighbors list
+                ArrayList<String> newNeighbors = addLinksToGraph(graph.getNode(url), linksPerSite, settled);
 
-                ArrayList<String> newNeighbors = addLinksToGraph(newNode, linksPerSite, settled);
-
+                // add the new neighbors to the allNeighbors list
                 allNeighbors.addAll(newNeighbors);
 
             }
@@ -174,16 +185,22 @@ public class Scraper {
         }
     }
 
+    /**
+     *
+     */
     private ArrayList<String> addLinksToGraph(GraphNode node, int linksPerSite,
                                               Set<String> settled) throws IOException {
 
+        // Establish an ArrayList for keeping track of the links found on the webpage at the node's URL
         ArrayList<String> linkList = new ArrayList<>();
 
         try
         {
+            // Get all the links on the webpage as elements
             Document doc = Jsoup.connect(node.getUrl()).get();
             Elements links = doc.select("a[href]");
 
+            // Transfer the URLs from the elements to the linkList ArrayList
             for(Element link : links)
                 linkList.add(link.attr("abs:href"));
         }
@@ -192,56 +209,72 @@ public class Scraper {
             e.printStackTrace();
         }
 
+        // Establish int variable for keeping track of how many more neighbors may be added from this node's links
         int linksRemaining = linksPerSite;
+
+        // Establish int variable for keeping track of how many existing nodes get connected to this node
+        int existingNodesConnected = 0;
+
+        // Establish an ArrayList for keeping track of the URLs for the new neighbors that get added
         ArrayList<String> newNeighbors = new ArrayList<>();
 
-        while(linksRemaining > 0 && !linkList.isEmpty()){
+        // While this node has not exceeded its limit for new neighbors, and it has not run out of links:
+        while(linksRemaining > 0 && !linkList.isEmpty() && existingNodesConnected < 5){
 
+            // Assign the URL from a random index in the linkList to the url String variable
             int index = (int) (Math.random() * linkList.size());
             String url = linkList.get(index);
 
+            // If the URL is valid for our purposes:
             if(url.startsWith("https://en.wikipedia.org") && url.contains("/wiki/") && !url.substring(6).contains(":")
                     && !url.contains("#") && !url.contains("%")){
 
-                // Connect to the URL
-                Document document = Jsoup.connect(url).get();
+                // Extract text from the webpage so that content length can be assessed
+                String content = WebTextProcessor.extractTextFromUrl(url);
 
-                // Store the contents of all <p> elements on the webpage
-                Elements links = document.select("p");
+                // If the content on the page contains a sufficient number of characters:
+                if(content.length() > 8000){
 
-                // Combine the contents from the <p> elements into a single string
-                StringBuilder sb = new StringBuilder();
-                for(Element link : links){
-                    sb.append(link.text());
-                    sb.append(" ");
-                }
-
-                if(sb.length() > 1000){
-
+                    // See if the node already exists
                     GraphNode existingNode = graph.getNode(url);
 
+                    // If the node already exists:
                     if(existingNode != null){
 
-                        connectNeighbors(node, existingNode);
 
+                        // TODO: REMOVE THIS
+                        System.out.println("\n" + url + " found!");
+                        System.out.println("Connecting node " + node.getUrl() + " to EXISTING node " + existingNode.getUrl());
+
+
+                        // Connect node to the existing node and increment existingNodesConnected
+                        connectNeighbors(node, existingNode);
+                        existingNodesConnected++;
+
+                        // Otherwise:
                     } else {
 
-                        GraphNode newNode = new GraphNode(this.currentNode.getUrl());
-
+                        // Create a new node with the URL, stored in this.currentNode, and scrape content for it
                         addWebsite(url);
-                        connectNeighbors(node, newNode);
-                        newNeighbors.add(url);
-                        linksRemaining--;
-                        linkList.remove(index);
-                    }
 
-                    linkList.remove(index);
+                        // Connect node with the new node
+                        connectNeighbors(node, this.currentNode);
+
+                        // Add the new node's URL to the list of new neighbors
+                        newNeighbors.add(url);
+
+                        // Decrement linksRemaining
+                        linksRemaining--;
+                    }
                 }
             }
+
+            // Remove the URL from the list of available links, in order to avoid adding the same link twice
+            linkList.remove(index);
         }
 
+        // Mark current node as settled, then return its new neighbors
         settled.add(node.getUrl());
-
         return newNeighbors;
     }
 
