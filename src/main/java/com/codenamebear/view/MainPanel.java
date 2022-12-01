@@ -9,10 +9,12 @@ import java.util.Arrays;
 
 public class MainPanel extends JPanel {
 
-    private final JTextField urlField;
-    private final JLabel resultLabel;
-    private final JLabel otherResultsLabel;
-    private final JList<String> resultsList;
+    private final JTextField sourceUrlField;
+    private final JTextField destinationUrlField;
+    private final JLabel warningLabel;
+    private final JLabel  validCheck;
+    //Replaced by bottom panel
+    //private final JList<String> resultsList;
     private final Controller controller;
     private final static Font BOLD_FONT = new Font("San-Serif", Font.BOLD, 14);
     private final static Font PLAIN_FONT = new Font("San-Serif", Font.PLAIN, 14);
@@ -25,30 +27,28 @@ public class MainPanel extends JPanel {
         dim.width = 250;
         setPreferredSize(dim);
 
-        JLabel instructionLabel = new JLabel("Enter URL here:");
-        instructionLabel.setFont(BOLD_FONT);
+        //Source label and it's url field
+        JLabel sourceLabel = new JLabel("Enter source URL here:");
+        sourceLabel.setFont(BOLD_FONT);
+        sourceUrlField = new JTextField();
 
-        urlField = new JTextField();
+        //Destination label and it's url field
+        JLabel destinationLabel = new JLabel("Enter destination URL here:");
+        destinationLabel.setFont(BOLD_FONT);
+        destinationUrlField = new JTextField();
 
-        JButton searchButton = new JButton("Search for Related URL");
+        // Button to perform search for shortest path
+        JButton searchButton = new JButton("Show traversal");
         searchButton.setFont(BOLD_FONT);
 
-        resultLabel = new JLabel("Results will appear here.");
-        resultLabel.setFont(BOLD_FONT);
+        validCheck = new JLabel("");
+        validCheck.setFont(BOLD_FONT);
 
-        otherResultsLabel = new JLabel("More related URLs:");
-        otherResultsLabel.setFont(BOLD_FONT);
-        otherResultsLabel.setVisible(false);
-
-        resultsList = new JList<>();
-        resultsList.setFont(PLAIN_FONT);
-        resultsList.setBackground(new Color(238, 238, 238));
-        resultsList.setVisible(false);
-
-        JButton scrapeButton = new JButton("Re-Scrape Content");
+        //Button to scrape data
+        JButton scrapeButton = new JButton("Scrape Content");
         scrapeButton.setFont(BOLD_FONT);
 
-        JLabel warningLabel = new JLabel("WARNING: This may take several minutes!");
+        warningLabel = new JLabel("WARNING: This may take several minutes!");
         warningLabel.setFont(BOLD_FONT);
 
         searchButton.addActionListener(e -> {
@@ -58,10 +58,13 @@ public class MainPanel extends JPanel {
 
         });
 
+        //Scraper
         scrapeButton.addActionListener(e -> {
 
             // Scrape web content for all URLs
             controller.scrapeContent();
+            scrapeButton.setText("Re-Scrape Content");
+
 
         });
 
@@ -73,111 +76,112 @@ public class MainPanel extends JPanel {
 
         GridBagConstraints gc = new GridBagConstraints();
 
+        //Scrape button
         gc.gridx = 1;
         gc.gridy = 1;
-        gc.gridwidth = 2;
+        gc.gridwidth = 1;
         gc.weightx = 1;
-        gc.weighty = .5;
-        gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.insets = new Insets(0, 30, 0, 30);
-        gc.anchor = GridBagConstraints.LAST_LINE_START;
-        add(instructionLabel, gc);
+        gc.weighty = .3;
+        gc.anchor = GridBagConstraints.LINE_END;
+        gc.fill = GridBagConstraints.NONE;
+        gc.insets = new Insets(20, 30, 0, 5);
+        add(scrapeButton, gc);
 
+        // Warning label next to scraper
+        gc.gridx = 2;
+        gc.gridy = 1;
+        gc.gridwidth = 1;
+        gc.weightx = 1;
+        gc.weighty = .3;
+        gc.anchor = GridBagConstraints.LINE_START;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.insets = new Insets(20, 5, 0, 30);
+        add(warningLabel, gc);
+
+        //Label showing where to place source
         gc.gridx = 1;
         gc.gridy = 2;
+        gc.gridwidth = 2;
+        gc.weightx = 1;
+        gc.weighty = .1;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.insets = new Insets(10, 30, 0, 30);
+        gc.anchor = GridBagConstraints.LINE_START;
+        add(sourceLabel, gc);
+
+        //Source input text field
+        gc.gridx = 1;
+        gc.gridy = 3;
+        gc.gridwidth = 2;
+        gc.weightx = 1;
+        gc.weighty = .2;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.anchor = GridBagConstraints.LINE_START;
+        gc.insets = new Insets(10, 30, 5, 30);
+        add(sourceUrlField, gc);
+
+        //Label showing where to place destination
+        gc.gridx = 1;
+        gc.gridy = 4;
+        gc.gridwidth = 2;
+        gc.weightx = 1;
+        gc.weighty = .1;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.insets = new Insets(10, 30, 0, 30);
+        gc.anchor = GridBagConstraints.LAST_LINE_START;
+        add(destinationLabel, gc);
+
+        //Destination input text field
+        gc.gridx = 1;
+        gc.gridy = 5;
         gc.gridwidth = 2;
         gc.weightx = 1;
         gc.weighty = .2;
         gc.fill = GridBagConstraints.HORIZONTAL;
         gc.anchor = GridBagConstraints.LINE_START;
         gc.insets = new Insets(10, 30, 10, 30);
-        add(urlField, gc);
+        add(destinationUrlField, gc);
 
-        gc.gridx = 1;
-        gc.gridy = 3;
-        gc.gridwidth = 2;
-        gc.weightx = 1;
-        gc.weighty = 1;
-        gc.fill = GridBagConstraints.NONE;
-        gc.insets = new Insets(0, 30, 0, 30);
-        gc.anchor = GridBagConstraints.FIRST_LINE_START;
-        add(searchButton, gc);
-
-        gc.gridx = 1;
-        gc.gridy = 4;
-        gc.gridwidth = 2;
-        gc.weightx = .5;
-        gc.weighty = 1;
-        gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.insets = new Insets(30, 30, 30, 30);
-        add(resultLabel, gc);
-
-        gc.gridx = 1;
-        gc.gridy = 5;
-        gc.gridwidth = 2;
-        gc.weightx = 1;
-        gc.weighty = 1;
-        gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.insets = new Insets(0, 30, 10, 30);
-        gc.anchor = GridBagConstraints.LAST_LINE_START;
-        add(otherResultsLabel, gc);
-
+        //Button to begin Dijkstra, will output results when done
         gc.gridx = 1;
         gc.gridy = 6;
         gc.gridwidth = 2;
         gc.weightx = 1;
         gc.weighty = 1;
-        gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.insets = new Insets(0, 30, 50, 30);
+        gc.fill = GridBagConstraints.NONE;
+        gc.insets = new Insets(10, 30, 0, 30);
         gc.anchor = GridBagConstraints.FIRST_LINE_START;
-        add(resultsList, gc);
+        add(searchButton, gc);
 
+        //Label to explain if URL's are not valid
         gc.gridx = 1;
         gc.gridy = 7;
-        gc.gridwidth = 1;
-        gc.weightx = 1;
+        gc.gridwidth = 2;
+        gc.weightx = .5;
         gc.weighty = 1;
-        gc.anchor = GridBagConstraints.LINE_END;
-        gc.fill = GridBagConstraints.NONE;
-        gc.insets = new Insets(0, 30, 0, 5);
-        add(scrapeButton, gc);
-
-        gc.gridx = 2;
-        gc.gridy = 7;
-        gc.gridwidth = 1;
-        gc.weightx = 1;
-        gc.weighty = 1;
-        gc.anchor = GridBagConstraints.LINE_START;
         gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.insets = new Insets(0, 5, 0, 30);
-        add(warningLabel, gc);
+        gc.insets = new Insets(15, 30, 15, 30);
+        add(validCheck, gc);
+
 
     }
 
     private void performSearch() {
+    //Some of this may change as controller is changed
 
-        // Make sure the URL is valid
-        String url = urlField.getText();
-        boolean validUrl = controller.validateUrl(url);
+        // Make sure the URLs are valid
+        String sourceUrl = sourceUrlField.getText();
+        boolean validUrl = controller.validateUrl(sourceUrl);
+        String destinationUrl = destinationUrlField.getText();
+        boolean validUrl2 = controller.validateUrl(destinationUrl);
 
-        // If the URL is valid:
-        if (validUrl) {
-            try {
-                // Have controller process the request, then provide the result to the user
-                String[] results = controller.processUserRequest(url);
-                resultLabel.setText("Best Match is: " + results[0]);
-                otherResultsLabel.setVisible(true);
-
-                String[] modifiedResults = Arrays.copyOfRange(results, 1, results.length);
-                resultsList.setListData(modifiedResults);
-                resultsList.setVisible(true);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
+        // If the URLs are valid:
+        if (validUrl && validUrl2) {
+            
+            // call graph traversal method
+            
         } else {
-            resultLabel.setText("Invalid URL! Please try again.");
-            otherResultsLabel.setVisible(false);
-            otherResultsLabel.setVisible(false);
+            validCheck.setText("Invalid URL! Please try again.");
         }
     }
 }

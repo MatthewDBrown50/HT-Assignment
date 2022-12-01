@@ -372,4 +372,16 @@ public class Controller {
             System.out.println("failed to delete folder");
         }
     }
+
+    public String[] getWebsiteUrls(){
+        String[] urls = new String[100];
+        int i = 0;
+
+        for(Website site : websites){
+            urls[i] = site.getUrl();
+            i++;
+        }
+
+        return urls;
+    }
 }
