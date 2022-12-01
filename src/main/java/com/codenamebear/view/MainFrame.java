@@ -15,6 +15,7 @@ public class MainFrame extends JFrame{
 
     public MainFrame(Controller controller){
         super("Related URL Traverser");
+<<<<<<< Updated upstream
 
         //Instantiate panels and split Pane
         splitPane = new JSplitPane();
@@ -38,6 +39,8 @@ public class MainFrame extends JFrame{
         //Test text
         output.setText("<html> https://en.wikipedia.org/wiki/2022_Russian_invasion_of_Ukraine           <br>" +
                 "https://en.wikipedia.org/wiki/2022_Russian_invasion_of_Ukraine</html>");
+=======
+>>>>>>> Stashed changes
 
         //Set scroll bar to always vertical
         scroll = new JScrollPane(output, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,

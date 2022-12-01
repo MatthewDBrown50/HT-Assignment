@@ -11,10 +11,15 @@ public class MainPanel extends JPanel {
 
     private final JTextField sourceUrlField;
     private final JTextField destinationUrlField;
+<<<<<<< Updated upstream
     private final JLabel warningLabel;
     private final JLabel  validCheck;
     //Replaced by bottom panel
     //private final JList<String> resultsList;
+=======
+    private final JLabel resultLabel;
+    private final JList<String> resultsList;
+>>>>>>> Stashed changes
     private final Controller controller;
     private final static Font BOLD_FONT = new Font("San-Serif", Font.BOLD, 14);
     private final static Font PLAIN_FONT = new Font("San-Serif", Font.PLAIN, 14);
@@ -37,6 +42,7 @@ public class MainPanel extends JPanel {
         destinationLabel.setFont(BOLD_FONT);
         destinationUrlField = new JTextField();
 
+<<<<<<< Updated upstream
         // Button to perform search for shortest path
         JButton searchButton = new JButton("Show traversal");
         searchButton.setFont(BOLD_FONT);
@@ -45,6 +51,19 @@ public class MainPanel extends JPanel {
         validCheck.setFont(BOLD_FONT);
 
         //Button to scrape data
+=======
+        JButton searchButton = new JButton("Show traversal");
+        searchButton.setFont(BOLD_FONT);
+
+        resultLabel = new JLabel("URL options will appear here.");
+        resultLabel.setFont(BOLD_FONT);
+
+        resultsList = new JList<>();
+        resultsList.setFont(PLAIN_FONT);
+        resultsList.setBackground(new Color(238, 238, 238));
+        resultsList.setVisible(false);
+
+>>>>>>> Stashed changes
         JButton scrapeButton = new JButton("Scrape Content");
         scrapeButton.setFont(BOLD_FONT);
 
@@ -65,6 +84,15 @@ public class MainPanel extends JPanel {
             controller.scrapeContent();
             scrapeButton.setText("Re-Scrape Content");
 
+<<<<<<< Updated upstream
+=======
+            //Show website choices
+            String[] results = controller.getWebsiteUrls();  
+            String[] modifiedResults = Arrays.copyOfRange(results, 0, results.length);
+            resultsList.setListData(modifiedResults);
+            resultsList.setVisible(true);
+
+>>>>>>> Stashed changes
 
         });
 
@@ -78,6 +106,7 @@ public class MainPanel extends JPanel {
 
         //Scrape button
         gc.gridx = 1;
+<<<<<<< Updated upstream
         gc.gridy = 1;
         gc.gridwidth = 1;
         gc.weightx = 1;
@@ -97,21 +126,56 @@ public class MainPanel extends JPanel {
         gc.fill = GridBagConstraints.HORIZONTAL;
         gc.insets = new Insets(20, 5, 0, 30);
         add(warningLabel, gc);
+=======
+        gc.gridy = 2;
+        gc.gridwidth = 2;
+        gc.weightx = 1;
+        gc.weighty = .1;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.insets = new Insets(0, 30, 0, 30);
+        gc.anchor = GridBagConstraints.LINE_START;
+        add(sourceLabel, gc);
+
+        gc.gridx = 1;
+        gc.gridy = 3;
+        gc.gridwidth = 2;
+        gc.weightx = 1;
+        gc.weighty = .2;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.anchor = GridBagConstraints.LINE_START;
+        gc.insets = new Insets(0, 30, 5, 30);
+        add(sourceUrlField, gc);
+
+        gc.gridx = 1;
+        gc.gridy = 4;
+        gc.gridwidth = 2;
+        gc.weightx = 1;
+        gc.weighty = .1;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.insets = new Insets(0, 30, 0, 30);
+        gc.anchor = GridBagConstraints.LAST_LINE_START;
+        add(destinationLabel, gc);
+>>>>>>> Stashed changes
 
         //Label showing where to place source
         gc.gridx = 1;
-        gc.gridy = 2;
+        gc.gridy = 5;
         gc.gridwidth = 2;
         gc.weightx = 1;
         gc.weighty = .1;
         gc.fill = GridBagConstraints.HORIZONTAL;
         gc.insets = new Insets(10, 30, 0, 30);
         gc.anchor = GridBagConstraints.LINE_START;
+<<<<<<< Updated upstream
         add(sourceLabel, gc);
+=======
+        gc.insets = new Insets(0, 30, 10, 30);
+        add(destinationUrlField, gc);
+>>>>>>> Stashed changes
 
         //Source input text field
         gc.gridx = 1;
-        gc.gridy = 3;
+        gc.gridy = 6;
         gc.gridwidth = 2;
         gc.weightx = 1;
         gc.weighty = .2;
@@ -122,7 +186,7 @@ public class MainPanel extends JPanel {
 
         //Label showing where to place destination
         gc.gridx = 1;
-        gc.gridy = 4;
+        gc.gridy = 7;
         gc.gridwidth = 2;
         gc.weightx = 1;
         gc.weighty = .1;
@@ -133,6 +197,7 @@ public class MainPanel extends JPanel {
 
         //Destination input text field
         gc.gridx = 1;
+<<<<<<< Updated upstream
         gc.gridy = 5;
         gc.gridwidth = 2;
         gc.weightx = 1;
@@ -145,6 +210,9 @@ public class MainPanel extends JPanel {
         //Button to begin Dijkstra, will output results when done
         gc.gridx = 1;
         gc.gridy = 6;
+=======
+        gc.gridy = 8;
+>>>>>>> Stashed changes
         gc.gridwidth = 2;
         gc.weightx = 1;
         gc.weighty = 1;
@@ -155,6 +223,7 @@ public class MainPanel extends JPanel {
 
         //Label to explain if URL's are not valid
         gc.gridx = 1;
+<<<<<<< Updated upstream
         gc.gridy = 7;
         gc.gridwidth = 2;
         gc.weightx = .5;
@@ -163,6 +232,26 @@ public class MainPanel extends JPanel {
         gc.insets = new Insets(15, 30, 15, 30);
         add(validCheck, gc);
 
+=======
+        gc.gridy = 1;
+        gc.gridwidth = 1;
+        gc.weightx = 1;
+        gc.weighty = .3;
+        gc.anchor = GridBagConstraints.LINE_END;
+        gc.fill = GridBagConstraints.NONE;
+        gc.insets = new Insets(10, 30, 0, 5);
+        add(scrapeButton, gc);
+
+        gc.gridx = 2;
+        gc.gridy = 1;
+        gc.gridwidth = 1;
+        gc.weightx = 1;
+        gc.weighty = .3;
+        gc.anchor = GridBagConstraints.LINE_START;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.insets = new Insets(10, 5, 0, 30);
+        add(warningLabel, gc);
+>>>>>>> Stashed changes
 
     }
 
@@ -178,10 +267,17 @@ public class MainPanel extends JPanel {
         // If the URLs are valid:
         if (validUrl && validUrl2) {
             
+<<<<<<< Updated upstream
             // call graph traversal method
             
         } else {
             validCheck.setText("Invalid URL! Please try again.");
+=======
+            // Open graph window and call graphing method
+            
+        } else {
+            resultLabel.setText("Invalid URL! Please try again.");
+>>>>>>> Stashed changes
         }
     }
 }
