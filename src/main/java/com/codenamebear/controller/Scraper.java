@@ -145,7 +145,6 @@ public class Scraper {
 
             // Add the list of this seed's new neighbors to the list of ALL neighbors for the seeds
             allNeighbors.addAll(newNeighbors);
-
         }
 
         // Reduce the number of remaining GraphNodes to add by the number that have been added so far
@@ -168,9 +167,14 @@ public class Scraper {
                 // add the new neighbors to the allNeighbors list
                 allNeighbors.addAll(newNeighbors);
 
-            }
 
-            remainingLinkCount -= allNeighbors.size();
+                // Decrease the remaining number of GraphNodes to add by the number of new neighbors added
+                remainingLinkCount -= newNeighbors.size();
+
+                if(remainingLinkCount <= 0){
+                    break;
+                }
+            }
         }
     }
 
@@ -189,7 +193,7 @@ public class Scraper {
             Document doc = Jsoup.connect(node.getUrl()).get();
             Elements links = doc.select("a[href]");
 
-            // Transfer the URLs from the elements to the linkList ArrayList
+            // Transfer the paragraphs from the elements to the linkList ArrayList
             for(Element link : links)
                 linkList.add(link.attr("abs:href"));
         }
@@ -201,14 +205,11 @@ public class Scraper {
         // Establish int variable for keeping track of how many more neighbors may be added from this node's links
         int linksRemaining = linksPerSite;
 
-        // Establish int variable for keeping track of how many existing nodes get connected to this node
-        int existingNodesConnected = 0;
-
         // Establish an ArrayList for keeping track of the URLs for the new neighbors that get added
         ArrayList<String> newNeighbors = new ArrayList<>();
 
         // While this node has not exceeded its limit for new neighbors, and it has not run out of links:
-        while(linksRemaining > 0 && !linkList.isEmpty() && existingNodesConnected < 5){
+        while(linksRemaining > 0 && !linkList.isEmpty()){
 
             // Assign the URL from a random index in the linkList to the url String variable
             int index = (int) (Math.random() * linkList.size());
@@ -232,7 +233,6 @@ public class Scraper {
 
                         // Connect node to the existing node and increment existingNodesConnected
                         connectNeighbors(node, existingNode);
-                        existingNodesConnected++;
 
                         // Otherwise:
                     } else {

@@ -5,6 +5,8 @@ import com.codenamebear.model.HT;
 import com.codenamebear.model.Word;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
 import java.util.*;
 
 /******************************************
@@ -25,15 +27,55 @@ public class Graph {
     /**
      * CONSTRUCTOR
      */
+    @SuppressWarnings("unchecked")
     public Graph() {
 
-        String filePath = "src/main/resources/graph.ser";
-        File file = new File(filePath);
+        System.out.println("\nLoading graph. Please allow 1 or 2 minutes for this process to complete...");
 
-        if(file.exists()){
+        // Establish a File with path to serialized graph file location
+        String graphFilePath = "src/main/resources/graph.ser";
+        File graphFile = new File(graphFilePath);
 
+        // Establish a File with path to serialized websites file location
+        String websitesFilePath = "src/main/resources/websites.ser";
+        File websitesFile = new File(websitesFilePath);
+
+        // Determine if the files currently exist
+        boolean filesExist = graphFile.exists() && websitesFile.exists();
+
+        // If the files exist:
+        if(filesExist){
+
+            // Deserialize graph.ser and websites.ser, and assign them to this.graph and this.websites, respectively
+            try {
+                FileInputStream fileIn = new FileInputStream(graphFilePath);
+                ObjectInputStream inputStream = new ObjectInputStream(fileIn);
+                this.graph = (ArrayList<GraphNode>) inputStream.readObject();
+                inputStream.close();
+                fileIn.close();
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+
+            try {
+                FileInputStream fileIn = new FileInputStream(websitesFilePath);
+                ObjectInputStream inputStream = new ObjectInputStream(fileIn);
+                this.websites = (ArrayList<String>) inputStream.readObject();
+                inputStream.close();
+                fileIn.close();
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+
+            System.out.println("\nGraph loaded");
+
+            // Otherwise, initialize this.graph and this.website and new ArrayLists
         } else {
+
+            System.out.println("\nSerialized graph not found. Starting with empty graph.");
+
             this.graph = new ArrayList<>();
+            this.websites = new ArrayList<>();
         }
     }
 
@@ -126,6 +168,11 @@ public class Graph {
 
         double shortestCost = Integer.MAX_VALUE;
         ArrayList<String> shortestPath = new ArrayList<>();
+
+        if(sourceUrl.equals(destinationUrl)){
+            shortestPath.add(sourceUrl);
+            return shortestPath;
+        }
 
         for(ArrayList<CostNode> costList : this.costLists){
             double cost = 0;
