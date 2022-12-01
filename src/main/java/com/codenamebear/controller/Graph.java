@@ -163,33 +163,43 @@ public class Graph {
      */
     public ArrayList<String> getShortestPath(String sourceUrl, String destinationUrl){
 
-
-        dijkstra(sourceUrl, destinationUrl);
-
-        double shortestCost = Integer.MAX_VALUE;
+        // Initialize a double for tracking the cheapest cost, along
+        // with an ArrayList that stores the path with that cost
+        double cheapestCost = Integer.MAX_VALUE;
         ArrayList<String> shortestPath = new ArrayList<>();
 
+        // If the source and destination are the same, simply return an ArrayList that only contains the source
         if(sourceUrl.equals(destinationUrl)){
             shortestPath.add(sourceUrl);
             return shortestPath;
         }
 
+        // Populate this.costLists with paths from source to destination
+        dijkstra(sourceUrl, destinationUrl);
+
+        // For each path in this.costLists:
         for(ArrayList<CostNode> costList : this.costLists){
+
+            // Initialize a variable for tracking the cost of the path
             double cost = 0;
 
+            // Add the cost of each costNode in the path to the cost variable
             for(CostNode costNode : costList){
                 cost += costNode.cost();
             }
 
-            if (cost < shortestCost){
+            // If this is the cheapest path so far, create a new ArrayList with the
+            // URLs of the path and assign it to shortestPath, then update cheapestCost
+            if (cost < cheapestCost){
                 ArrayList<String> path = new ArrayList<>();
 
                 for(CostNode costNode : costList){
                     path.add(costNode.url());
                 }
 
-                shortestCost = cost;
                 shortestPath = path;
+
+                cheapestCost = cost;
             }
         }
 
@@ -201,6 +211,7 @@ public class Graph {
      * ESTABLISH AN ARRAYLIST TO HOLD ARRAYLISTS OF CostNode OBJECTS
      * ESTABLISH A COST ARRAYLIST FOR EACH NEIGHBOR OF THE SOURCE NODE
      * FOR EACH NEIGHBOR, CALL processNeighbors() TO BUILD ALL THE PATHS FROM THAT NODE
+     * ADD THE ARRAYLIST FOR EACH PATH THAT FINDS THE DESTINATION NODE TO this.costLists
      */
     public void dijkstra(String sourceUrl, String destinationUrl) {
 
@@ -236,32 +247,51 @@ public class Graph {
         }
     }
 
+    /**
+     * START BUILDING A PATH OF COSTNODES FROM EACH UNSETTLED NEIGHBOR OF THE SOURCE NODE
+     * MAKE RECURSIVE CALLS TO THIS METHOD UNTIL THE DESTINATION IS FOUND, OR WE RUN OUT OF UNSETTLED NEIGHBORS TO
+     *   CONTINUE THE PATH WITH
+     */
     private void processNeighbors(GraphNode source, String destinationUrl,
                                   Set<String> settled, ArrayList<CostNode> costList){
 
+        // For each neighbor of the source node:
         for(GraphNode neighbor : source.getNeighbors()){
 
+            // If the neighbor isn't already settled:
             if(!settled.contains(neighbor.getUrl())){
-                double edgeDistance = getCost(source.getValues(), neighbor.getValues());
+
+                // Establish a separate costList for the path that continues with this neighbor
+                ArrayList<CostNode> newCostList = new ArrayList<>(costList);
+
+                // Mark the neighbor as settled
                 settled.add(neighbor.getUrl());
-                costList.add(new CostNode(neighbor.getUrl(), edgeDistance));
 
+                // Get the cost for traveling from the source node to the neighbor and add it to the newCostList
+                double edgeDistance = getCost(source.getValues(), neighbor.getValues());
+                newCostList.add(new CostNode(neighbor.getUrl(), edgeDistance));
+
+                // If the neighbor is the node we're looking for, add the newCostList to this.costLists
                 if(neighbor.getUrl().equals(destinationUrl)){
+                    costLists.add(newCostList);
 
-                    costLists.add(costList);
-
+                    // Otherwise, call this method again, with neighbor as the source node
                 }else {
-
-                    processNeighbors(neighbor, destinationUrl, settled, costList);
+                    processNeighbors(neighbor, destinationUrl, settled, newCostList);
                 }
             }
         }
     }
 
+    /**
+     * RETURN THE COST VALUE FOR TRAVERSING THE EDGE FROM website1 TO website2
+     */
     private double getCost(HT website1, HT website2){
 
+        // Initialize a match value for the sites
         double matchValue = 0;
 
+        // For each word in website1's hashtable:
         for (Word word : website1.getKeys()) {
             String nextWord = word.getWord();
 
@@ -283,6 +313,9 @@ public class Graph {
         return (1 / matchValue);
     }
 
+    /**
+     * GETTERS AND SETTERS
+     */
     public ArrayList<GraphNode> getGraph() {
         return graph;
     }

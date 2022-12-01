@@ -25,7 +25,25 @@ public class Main {
 
         Graph graph = new Graph();
 
-        ArrayList<String> shortestPath = graph.getShortestPath("https://en.wikipedia.org/wiki/Capitalism", "https://en.wikipedia.org/wiki/Estonian_Jews");
+        GraphNode source = graph.getNode("https://en.wikipedia.org/wiki/Paradigm");
+
+        GraphNode oneAway = source.getNeighbors().get(2);
+
+        GraphNode twoAway = oneAway.getNeighbors().get(2);
+
+        GraphNode destination = twoAway.getNeighbors().get(2);
+
+
+        System.out.println("");
+        System.out.println(source.getUrl());
+        System.out.println(oneAway.getUrl());
+        System.out.println(twoAway.getUrl());
+        System.out.println(destination.getUrl());
+        System.out.println("\nPath:");
+
+
+
+        ArrayList<String> shortestPath = graph.getShortestPath(source.getUrl(), destination.getUrl());
 
         for(String url : shortestPath){
             System.out.println(url);
