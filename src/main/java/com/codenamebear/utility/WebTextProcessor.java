@@ -17,9 +17,6 @@ public class WebTextProcessor {
 
     public static HT getWeightedWords(GraphNode node, int numberOfWebsites){
 
-        System.out.println("/n" + node.getUrl());
-        System.out.println(node.getValues());
-
         // For all the WordCount objects held by the Website object:
         for(Word word : node.getValues().getKeys()){
 
@@ -41,8 +38,13 @@ public class WebTextProcessor {
 
     public static String extractTextFromUrl(String url) throws IOException {
 
-        // Connect to the URL
-        Document document = Jsoup.connect(url).get();
+        // Scrape the webpage at the specified URL
+        Document document;
+        try{
+            document = Jsoup.connect(url).get();
+        } catch (Exception e){
+            return "";
+        }
 
         // Store the contents of all <p> elements on the webpage
         Elements links = document.select("p");

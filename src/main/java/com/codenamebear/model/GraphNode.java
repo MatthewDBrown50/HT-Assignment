@@ -8,7 +8,7 @@ import java.util.ArrayList;
  *******************************************/
 
 public class GraphNode implements Serializable {
-    // Member variables of this class
+
     private final String url;
     private int totalWords;
     private HT values;

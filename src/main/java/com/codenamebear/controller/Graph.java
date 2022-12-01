@@ -3,7 +3,8 @@ package com.codenamebear.controller;
 import com.codenamebear.model.GraphNode;
 import com.codenamebear.model.HT;
 import com.codenamebear.model.Word;
-import java.io.IOException;
+
+import java.io.File;
 import java.util.*;
 
 /******************************************
@@ -13,19 +14,27 @@ import java.util.*;
 public class Graph {
 
     private ArrayList<ArrayList<CostNode>> costLists;
-    private ArrayList<GraphNode> roots;
+    private ArrayList<GraphNode> graph;
+    private ArrayList<String> websites;
 
     // This node is used to track the 'found node' when searching for a node with getNode()
-    // Due to the concurrent nature of the getNode() method, making this object local to the getNode() method
-    //   leads to incorrect null returns
+    // Due to the concurrent nature of the getNode() and searchNeighbors methods, making this object local
+    //   leads to improper null returns
     private GraphNode foundNode;
 
     /**
      * CONSTRUCTOR
      */
-    public Graph() throws IOException {
-        this.roots = new ArrayList<>();
-        this.foundNode = null;
+    public Graph() {
+
+        String filePath = "src/main/resources/graph.ser";
+        File file = new File(filePath);
+
+        if(file.exists()){
+
+        } else {
+            this.graph = new ArrayList<>();
+        }
     }
 
     /**
@@ -34,8 +43,8 @@ public class Graph {
     record CostNode(String url, double cost) {}
 
     /**
-     * CHECK TO SEE IF ANY OF THE ROOTS ARE THE NODE WE'RE LOOKING FOR.
-     * IF NOT, THEN CALL searchNeighbors() FOR EACH NEIGHBOR OF EACH ROOT
+     * CHECK TO SEE IF ANY OF THE SEEDS ARE THE NODE WE'RE LOOKING FOR.
+     * IF NOT, THEN CALL searchNeighbors() FOR EACH NEIGHBOR OF EACH SEED
      */
     public GraphNode getNode(String sourceUrl){
 
@@ -45,21 +54,21 @@ public class Graph {
         // Establish a hashset to keep track of which nodes have been checked.
         Set<String> settled = new HashSet<>();
 
-        // For each root node:
-        for(GraphNode root : this.roots){
+        // For each seed node:
+        for(GraphNode seed : this.graph){
 
-            // If the root is the node we're looking for, return it
-            if(root.getUrl().equals(sourceUrl)){
-                return root;
+            // If the seed is the node we're looking for, return it
+            if(seed.getUrl().equals(sourceUrl)){
+                return seed;
 
                 // Otherwise:
             } else {
 
-                // Mark the root as settled
-                settled.add(root.getUrl());
+                // Mark the seed as settled
+                settled.add(seed.getUrl());
 
-                // For each neighbor of the root:
-                for (GraphNode neighbor : root.getNeighbors()){
+                // For each neighbor of the seed:
+                for (GraphNode neighbor : seed.getNeighbors()){
 
                     // Check the neighbor node, as well as its neighbors
                     GraphNode sourceNode = searchNeighbors(neighbor, sourceUrl, settled);
@@ -227,11 +236,19 @@ public class Graph {
         return (1 / matchValue);
     }
 
-    public ArrayList<GraphNode> getRoots() {
-        return roots;
+    public ArrayList<GraphNode> getGraph() {
+        return graph;
     }
 
-    public void setRoots(ArrayList<GraphNode> roots) {
-        this.roots = roots;
+    public void setGraph(ArrayList<GraphNode> graph) {
+        this.graph = graph;
+    }
+
+    public ArrayList<String> getWebsites() {
+        return websites;
+    }
+
+    public void setWebsites(ArrayList<String> websites) {
+        this.websites = websites;
     }
 }

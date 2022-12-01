@@ -27,34 +27,30 @@ import java.util.Set;
 public class Scraper {
 
     Graph graph;
-    private final ArrayList<String> ignoredWords;
-    private final List<String> websites;
+    private ArrayList<String> ignoredWords;
     private GraphNode currentNode;
 
     /** CONSTRUCTOR */
-    public Scraper(Graph graph) throws IOException {
-
-        // Establish a list of ignored words
-        List<String> ignoredWordsList = Files.readAllLines(Paths.get("src/main/resources/filter.txt"), StandardCharsets.UTF_8);
-        this.ignoredWords = (ArrayList<String>) ignoredWordsList;
-
-        this.websites = new ArrayList<>();
-
+    public Scraper(Graph graph) {
         this.graph = graph;
-        graph.setRoots(new ArrayList<>());
     }
 
     /** SCRAPING STARTS HERE */
     public void scrapeContent() throws IOException {
 
-        // Delete existing roots file
-        File rootsFile = new File("src/main/resources/roots.ser");
-        if(!rootsFile.delete()){
-            System.out.println("Failed to delete roots file");
+        // Establish a list of ignored words
+        List<String> ignoredWordsList = Files.readAllLines(Paths.get("src/main/resources/filter.txt"), StandardCharsets.UTF_8);
+        this.ignoredWords = (ArrayList<String>) ignoredWordsList;
+
+        // Delete existing graph file
+        File graphFile = new File("src/main/resources/graph.ser");
+        if(!graphFile.delete()){
+            System.out.println("Failed to delete serialized graph file");
         }
 
-        // Start with an empty roots list
-        this.graph.setRoots(new ArrayList<>());
+        // Start with an empty graph and list of websites
+        this.graph.setGraph(new ArrayList<>());
+        this.graph.setWebsites(new ArrayList<>());
 
         try {
             // Establish list of URL addresses from the 'seeds.txt' resource
@@ -63,11 +59,11 @@ public class Scraper {
             // For the webpage at each URL:
             for(String url : urls) {
 
-                // Add this to the list of websites, create a new root node, and set its word counts
+                // Add this to the list of websites, create a new seed node, and set its word counts
                 addWebsite(url);
 
-                // Add the new root node to the list of roots
-                this.graph.getRoots().add(this.currentNode);
+                // Add the new seed node to the graph
+                this.graph.getGraph().add(this.currentNode);
 
             }
         } catch (Exception e) {
@@ -77,31 +73,20 @@ public class Scraper {
         // Finish populating the graph
         populateGraph();
 
-
-        // TODO: REMOVE THIS LOOP
-        for(String url : this.websites){
-
-            GraphNode node = graph.getNode(url);
-            System.out.println("\nURL: " + url);
-            System.out.println("Node URL: " + node.getUrl());
-            System.out.println("Values: " + node.getValues());
-        }
-
-
-
         // Add TF-IDF values to the hashtable for each GraphNode
-        for(String url : this.websites){
+        for(String url : this.graph.getWebsites()){
 
-            GraphNode node = graph.getNode(url);
+            GraphNode node = this.graph.getNode(url);
 
-//            System.out.println("\nSetting weights for: " + node.getUrl() + " with values: " + node.getValues());
-
-            setTfIdfValues(node, this.websites.size());
+            setTfIdfValues(node, this.graph.getWebsites().size());
 
         }
 
-        // Serialize this.roots arraylist
-        serializeRoots();
+        // Serialize the graph arraylist
+        serialize("src/main/resources/graph.ser", this.graph.getGraph());
+
+        // Serialize the list of websites
+        serialize("src/main/resources/websites.ser", this.graph.getWebsites());
     }
 
     /** Create a new GraphNode with the specified URL
@@ -122,39 +107,43 @@ public class Scraper {
         // then assign them to the website object
         WebTextProcessor.setWordCounts(content, node, this.ignoredWords);
 
-
         // Add the URL to the list of websites
-        this.websites.add(url);
+        this.graph.getWebsites().add(url);
 
         // Assign the new GraphNode to this.currentNode
         this.currentNode = node;
     }
 
+    /**
+     * TAKE THE FRESHLY SEEDED GRAPH AND ADD NEW NEIGHBORS TO THE SEED
+     * THEN BEGIN MAKING RECURSIVE CALLS, ADDING NEIGHBORS TO THE NEIGHBORS
+     * CONTINUE UNTIL 1000 NEIGHBORS HAVE BEEN ADDED
+     */
     private void populateGraph() throws IOException {
 
         // Establish a HashSet for keeping track of which nodes have already been processed
         Set<String> settled = new HashSet<>();
 
         // Establish how many more GraphNodes should be added to the graph
-        int remainingLinkCount = 80;
+        int remainingLinkCount = 1000;
 
         // Establish how many links should be used from each site
         int linksPerSite = 5;
 
-        // Establish an ArrayList to hold the URL of each of the links gathered from all the roots
+        // Establish an ArrayList to hold the URL of each of the links gathered from all the seeds
         ArrayList<String> allNeighbors = new ArrayList<>();
 
-        // For each root:
-        for(GraphNode root : this.graph.getRoots()){
+        // For each seed:
+        for(GraphNode seed : this.graph.getGraph()){
 
-            // Add the root to the list of settled nodes
-            settled.add(root.getUrl());
+            // Add the seed to the list of settled nodes
+            settled.add(seed.getUrl());
 
-            // Call addLinksToGraph() for this root, which selects up to 5 links from the root and assigns them as
-            // neighbor GraphNodes to the root. Save the list of the neighbors' URLs to a new ArrayList.
-            ArrayList<String> newNeighbors = addLinksToGraph(root, linksPerSite, settled);
+            // Call addLinksToGraph() for this seed, which selects up to 5 links from the seed and assigns them as
+            // neighbor GraphNodes to the seed. Save the list of the neighbors' URLs to a new ArrayList.
+            ArrayList<String> newNeighbors = addLinksToGraph(seed, linksPerSite, settled);
 
-            // Add the list of this root's new neighbors to the list of ALL neighbors for the roots
+            // Add the list of this seed's new neighbors to the list of ALL neighbors for the seeds
             allNeighbors.addAll(newNeighbors);
 
         }
@@ -241,12 +230,6 @@ public class Scraper {
                     // If the node already exists:
                     if(existingNode != null){
 
-
-                        // TODO: REMOVE THIS
-                        System.out.println("\n" + url + " found!");
-                        System.out.println("Connecting node " + node.getUrl() + " to EXISTING node " + existingNode.getUrl());
-
-
                         // Connect node to the existing node and increment existingNodesConnected
                         connectNeighbors(node, existingNode);
                         existingNodesConnected++;
@@ -290,12 +273,11 @@ public class Scraper {
         node.setValues(ht);
     }
 
-    private void serializeRoots(){
-        String sitePath = "src/main/resources/roots.ser";
+    private void serialize(String sitePath, Object object){
         try{
             FileOutputStream fileOut = new FileOutputStream(sitePath);
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
-            out.writeObject(this.graph.getRoots());
+            out.writeObject(object);
             out.close();
             fileOut.close();
         } catch (Exception e){
