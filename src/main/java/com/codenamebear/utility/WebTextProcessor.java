@@ -7,7 +7,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class WebTextProcessor {
@@ -36,7 +35,7 @@ public class WebTextProcessor {
         return  tf(wordCount, totalWords) * idf(numberOfWebsites, wordCount.getWord());
     }
 
-    public static String extractTextFromUrl(String url) throws IOException {
+    public static String extractTextFromUrl(String url) {
 
         // Scrape the webpage at the specified URL
         Document document;

@@ -3,21 +3,16 @@ package com.codenamebear.controller;
 import com.codenamebear.model.GraphNode;
 import com.codenamebear.model.HT;
 import com.codenamebear.model.Word;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.util.*;
 
-/******************************************
- Created on 11/27/2022 by Matthew D Brown
- *******************************************/
-
 public class Graph {
 
     private ArrayList<ArrayList<CostNode>> costLists;
     private ArrayList<GraphNode> graph;
-    private ArrayList<String> websites;
+    private ArrayList<String> topics;
 
     // This node is used to track the 'found node' when searching for a node with getNode()
     // Due to the concurrent nature of the getNode() and searchNeighbors methods, making this object local
@@ -36,17 +31,17 @@ public class Graph {
         String graphFilePath = "src/main/resources/graph.ser";
         File graphFile = new File(graphFilePath);
 
-        // Establish a File with path to serialized websites file location
-        String websitesFilePath = "src/main/resources/websites.ser";
-        File websitesFile = new File(websitesFilePath);
+        // Establish a File with path to serialized topics file location
+        String topicsFilePath = "src/main/resources/topics.ser";
+        File topicsFile = new File(topicsFilePath);
 
         // Determine if the files currently exist
-        boolean filesExist = graphFile.exists() && websitesFile.exists();
+        boolean filesExist = graphFile.exists() && topicsFile.exists();
 
         // If the files exist:
         if(filesExist){
 
-            // Deserialize graph.ser and websites.ser, and assign them to this.graph and this.websites, respectively
+            // Deserialize graph.ser and topics.ser, and assign them to this.graph and this.topics, respectively
             try {
                 FileInputStream fileIn = new FileInputStream(graphFilePath);
                 ObjectInputStream inputStream = new ObjectInputStream(fileIn);
@@ -58,9 +53,9 @@ public class Graph {
             }
 
             try {
-                FileInputStream fileIn = new FileInputStream(websitesFilePath);
+                FileInputStream fileIn = new FileInputStream(topicsFilePath);
                 ObjectInputStream inputStream = new ObjectInputStream(fileIn);
-                this.websites = (ArrayList<String>) inputStream.readObject();
+                this.topics = (ArrayList<String>) inputStream.readObject();
                 inputStream.close();
                 fileIn.close();
             } catch (Exception e){
@@ -75,20 +70,20 @@ public class Graph {
             System.out.println("\nSerialized graph not found. Starting with empty graph.");
 
             this.graph = new ArrayList<>();
-            this.websites = new ArrayList<>();
+            this.topics = new ArrayList<>();
         }
     }
 
     /**
      * INSTANCES OF THIS RECORD ARE USED TO KEEP TRACK OF EDGE COSTS WHEN DETERMINING THE SHORTEST PATH
      */
-    record CostNode(String url, double cost) {}
+    record CostNode(String topic, double cost) {}
 
     /**
      * CHECK TO SEE IF ANY OF THE SEEDS ARE THE NODE WE'RE LOOKING FOR.
      * IF NOT, THEN CALL searchNeighbors() FOR EACH NEIGHBOR OF EACH SEED
      */
-    public GraphNode getNode(String sourceUrl){
+    public GraphNode getNode(String topic){
 
         // Initialize foundNode to null so that it doesn't return the result from a previous search
         this.foundNode = null;
@@ -100,24 +95,24 @@ public class Graph {
         for(GraphNode seed : this.graph){
 
             // If the seed is the node we're looking for, return it
-            if(seed.getUrl().equals(sourceUrl)){
+            if(seed.getTopic().equals(topic)){
                 return seed;
 
                 // Otherwise:
             } else {
 
                 // Mark the seed as settled
-                settled.add(seed.getUrl());
+                settled.add(seed.getTopic());
 
                 // For each neighbor of the seed:
                 for (GraphNode neighbor : seed.getNeighbors()){
 
                     // Check the neighbor node, as well as its neighbors
-                    GraphNode sourceNode = searchNeighbors(neighbor, sourceUrl, settled);
+                    GraphNode sourceNode = searchNeighbors(neighbor, topic, settled);
 
                     // If a node was returned, and it was the one we're looking for, then assign it to the return
                     if(sourceNode != null){
-                        if (sourceNode.getUrl().equals(sourceUrl)){
+                        if (sourceNode.getTopic().equals(topic)){
                             this.foundNode = sourceNode;
                         }
                     }
@@ -133,10 +128,10 @@ public class Graph {
      * IF IT'S NOT, THEN CALL THIS METHOD RECURSIVELY WITH
      *   EACH OF THE NODE'S NEIGHBORS (EXCEPT ONES THAT HAVE BEEN SETTLED)
      */
-    private GraphNode searchNeighbors(GraphNode node, String sourceUrl, Set<String> settled){
+    private GraphNode searchNeighbors(GraphNode node, String topic, Set<String> settled){
 
         // If this node is the one we're searching for then assign it to foundNode
-        if(node.getUrl().equals(sourceUrl)){
+        if(node.getTopic().equals(topic)){
 
             this.foundNode = node;
 
@@ -144,13 +139,13 @@ public class Graph {
         } else {
 
             // Mark the node as settled
-            settled.add(node.getUrl());
+            settled.add(node.getTopic());
 
             // For each neighbor that isn't 'settled', call searchNeighbors() with that node
             for(GraphNode neighbor : node.getNeighbors()){
 
-                if(!settled.contains(neighbor.getUrl())){
-                    searchNeighbors(neighbor, sourceUrl,settled);
+                if(!settled.contains(neighbor.getTopic())){
+                    searchNeighbors(neighbor, topic,settled);
                 }
             }
         }
@@ -159,9 +154,9 @@ public class Graph {
     }
 
     /**
-     * RUN dijkstra() WITH THE SPECIFIED sourceUrl AND destinationUrl
+     * RUN dijkstra() WITH THE SPECIFIED startTopic AND destinationTopic
      */
-    public ArrayList<String> getShortestPath(String sourceUrl, String destinationUrl){
+    public ArrayList<String> getShortestPath(String startTopic, String destinationTopic){
 
         // Initialize a double for tracking the cheapest cost, along
         // with an ArrayList that stores the path with that cost
@@ -169,13 +164,13 @@ public class Graph {
         ArrayList<String> shortestPath = new ArrayList<>();
 
         // If the source and destination are the same, simply return an ArrayList that only contains the source
-        if(sourceUrl.equals(destinationUrl)){
-            shortestPath.add(sourceUrl);
+        if(startTopic.equals(destinationTopic)){
+            shortestPath.add(startTopic);
             return shortestPath;
         }
 
         // Populate this.costLists with paths from source to destination
-        dijkstra(sourceUrl, destinationUrl);
+        dijkstra(startTopic, destinationTopic);
 
         // For each path in this.costLists:
         for(ArrayList<CostNode> costList : this.costLists){
@@ -189,12 +184,12 @@ public class Graph {
             }
 
             // If this is the cheapest path so far, create a new ArrayList with the
-            // URLs of the path and assign it to shortestPath, then update cheapestCost
+            // topics of the path and assign it to shortestPath, then update cheapestCost
             if (cost < cheapestCost){
                 ArrayList<String> path = new ArrayList<>();
 
                 for(CostNode costNode : costList){
-                    path.add(costNode.url());
+                    path.add(costNode.topic());
                 }
 
                 shortestPath = path;
@@ -213,10 +208,10 @@ public class Graph {
      * FOR EACH NEIGHBOR, CALL processNeighbors() TO BUILD ALL THE PATHS FROM THAT NODE
      * ADD THE ARRAYLIST FOR EACH PATH THAT FINDS THE DESTINATION NODE TO this.costLists
      */
-    public void dijkstra(String sourceUrl, String destinationUrl) {
+    public void dijkstra(String startTopic, String destinationTopic) {
 
-        // Find the node for the specified URL and assign it to sourceNode
-        GraphNode sourceNode = getNode(sourceUrl);
+        // Find the node for the specified starting topic and assign it to sourceNode
+        GraphNode sourceNode = getNode(startTopic);
 
         // Initialize an ArrayList that will hold cost ArrayLists for each path that finds the destination
         costLists = new ArrayList<>();
@@ -229,15 +224,15 @@ public class Graph {
 
                 // Establish an ArrayList for storing costs, and add a CostNode for the source node to it
                 ArrayList<CostNode> costList = new ArrayList<>();
-                costList.add(new CostNode(sourceNode.getUrl(), 0));
+                costList.add(new CostNode(sourceNode.getTopic(), 0));
 
                 // Establish a HashSet for keeping track of which nodes have already been visited on the path
                 //   and add the source node to it
                 Set<String> settled = new HashSet<>();
-                settled.add(sourceUrl);
+                settled.add(startTopic);
 
                 // Begin building the paths
-                processNeighbors(neighbor,destinationUrl,settled,costList);
+                processNeighbors(neighbor,destinationTopic,settled,costList);
             }
 
         } else {
@@ -248,36 +243,36 @@ public class Graph {
     }
 
     /**
-     * START BUILDING A PATH OF COSTNODES FROM EACH UNSETTLED NEIGHBOR OF THE SOURCE NODE
+     * START BUILDING A PATH OF COST NODES FROM EACH UNSETTLED NEIGHBOR OF THE SOURCE NODE
      * MAKE RECURSIVE CALLS TO THIS METHOD UNTIL THE DESTINATION IS FOUND, OR WE RUN OUT OF UNSETTLED NEIGHBORS TO
      *   CONTINUE THE PATH WITH
      */
-    private void processNeighbors(GraphNode source, String destinationUrl,
+    private void processNeighbors(GraphNode source, String destinationTopic,
                                   Set<String> settled, ArrayList<CostNode> costList){
 
         // For each neighbor of the source node:
         for(GraphNode neighbor : source.getNeighbors()){
 
             // If the neighbor isn't already settled:
-            if(!settled.contains(neighbor.getUrl())){
+            if(!settled.contains(neighbor.getTopic())){
 
                 // Establish a separate costList for the path that continues with this neighbor
                 ArrayList<CostNode> newCostList = new ArrayList<>(costList);
 
                 // Mark the neighbor as settled
-                settled.add(neighbor.getUrl());
+                settled.add(neighbor.getTopic());
 
                 // Get the cost for traveling from the source node to the neighbor and add it to the newCostList
                 double edgeDistance = getCost(source.getValues(), neighbor.getValues());
-                newCostList.add(new CostNode(neighbor.getUrl(), edgeDistance));
+                newCostList.add(new CostNode(neighbor.getTopic(), edgeDistance));
 
                 // If the neighbor is the node we're looking for, add the newCostList to this.costLists
-                if(neighbor.getUrl().equals(destinationUrl)){
+                if(neighbor.getTopic().equals(destinationTopic)){
                     costLists.add(newCostList);
 
                     // Otherwise, call this method again, with neighbor as the source node
                 }else {
-                    processNeighbors(neighbor, destinationUrl, settled, newCostList);
+                    processNeighbors(neighbor, destinationTopic, settled, newCostList);
                 }
             }
         }
@@ -314,6 +309,35 @@ public class Graph {
     }
 
     /**
+     * DETERMINE AND RETURN THE NUMBER OF DISJOINT SETS IN THE GRAPH
+     */
+    public int getDisjointSetCount(){
+        ArrayList<ArrayList<GraphNode>> disjointSets = new ArrayList<>();
+        ArrayList<GraphNode> seeds = new ArrayList<>(this.graph);
+
+        while(!seeds.isEmpty()){
+
+            ArrayList<GraphNode> joinedSet = new ArrayList<>();
+
+            for(GraphNode seed : seeds){
+                ArrayList<String> path = getShortestPath(seeds.get(0).getTopic(), seed.getTopic());
+                if(!path.isEmpty()){
+                    joinedSet.add(seed);
+                }
+            }
+
+            for(GraphNode seed : joinedSet){
+                seeds.remove(seed);
+            }
+
+            disjointSets.add(joinedSet);
+        }
+
+        return disjointSets.size();
+    }
+
+
+    /**
      * GETTERS AND SETTERS
      */
     public ArrayList<GraphNode> getGraph() {
@@ -324,11 +348,11 @@ public class Graph {
         this.graph = graph;
     }
 
-    public ArrayList<String> getWebsites() {
-        return websites;
+    public ArrayList<String> getTopics() {
+        return topics;
     }
 
-    public void setWebsites(ArrayList<String> websites) {
-        this.websites = websites;
+    public void setTopics(ArrayList<String> topics) {
+        this.topics = topics;
     }
 }

@@ -3,13 +3,10 @@ package com.codenamebear.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/******************************************
- Created on 11/27/2022 by Matthew D Brown
- *******************************************/
-
 public class GraphNode implements Serializable {
 
     private final String url;
+    private final String topic;
     private int totalWords;
     private HT values;
     private final ArrayList<GraphNode> neighbors;
@@ -18,6 +15,13 @@ public class GraphNode implements Serializable {
     {
         this.url = url;
         this.neighbors = new ArrayList<>();
+
+        String topic = url.substring(30);
+        this.topic = topic.replaceAll("_", " ");
+    }
+
+    public String getTopic(){
+        return this.topic;
     }
 
     public String getUrl() {

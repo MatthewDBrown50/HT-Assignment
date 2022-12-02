@@ -7,7 +7,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -19,10 +18,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-/******************************************
- Created on 11/29/2022 by Matthew D Brown
- *******************************************/
 
 public class Scraper {
 
@@ -48,9 +43,9 @@ public class Scraper {
             System.out.println("Failed to delete serialized graph file");
         }
 
-        // Start with an empty graph and list of websites
+        // Start with an empty graph and list of topics
         this.graph.setGraph(new ArrayList<>());
-        this.graph.setWebsites(new ArrayList<>());
+        this.graph.setTopics(new ArrayList<>());
 
         try {
             // Establish list of URL addresses from the 'seeds.txt' resource
@@ -59,7 +54,7 @@ public class Scraper {
             // For the webpage at each URL:
             for(String url : urls) {
 
-                // Add this to the list of websites, create a new seed node, and set its word counts
+                // Add this to the list of topics, create a new seed node, and set its word counts
                 addWebsite(url);
 
                 // Add the new seed node to the graph
@@ -74,19 +69,19 @@ public class Scraper {
         populateGraph();
 
         // Add TF-IDF values to the hashtable for each GraphNode
-        for(String url : this.graph.getWebsites()){
+        for(String topic : this.graph.getTopics()){
 
-            GraphNode node = this.graph.getNode(url);
+            GraphNode node = this.graph.getNode(topic);
 
-            setTfIdfValues(node, this.graph.getWebsites().size());
+            setTfIdfValues(node, this.graph.getTopics().size());
 
         }
 
         // Serialize the graph arraylist
         serialize("src/main/resources/graph.ser", this.graph.getGraph());
 
-        // Serialize the list of websites
-        serialize("src/main/resources/websites.ser", this.graph.getWebsites());
+        // Serialize the list of topics
+        serialize("src/main/resources/topics.ser", this.graph.getTopics());
     }
 
     /** Create a new GraphNode with the specified URL
@@ -107,8 +102,8 @@ public class Scraper {
         // then assign them to the website object
         WebTextProcessor.setWordCounts(content, node, this.ignoredWords);
 
-        // Add the URL to the list of websites
-        this.graph.getWebsites().add(url);
+        // Add the node's topic to the list of topics
+        this.graph.getTopics().add(node.getTopic());
 
         // Assign the new GraphNode to this.currentNode
         this.currentNode = node;
@@ -161,8 +156,11 @@ public class Scraper {
             // For each neighbor that was in the 'allNeighbors' list:
             for(String url : allNeighborsCopy){
 
+                // Convert url string to topic string
+                String topic = url.substring(30).replaceAll("_", " ");
+
                 // Process links for the neighbor and assign them to the newNeighbors list
-                ArrayList<String> newNeighbors = addLinksToGraph(graph.getNode(url), linksPerSite, settled);
+                ArrayList<String> newNeighbors = addLinksToGraph(graph.getNode(topic), linksPerSite, settled);
 
                 // add the new neighbors to the allNeighbors list
                 allNeighbors.addAll(newNeighbors);
@@ -217,7 +215,7 @@ public class Scraper {
 
             // If the URL is valid for our purposes:
             if(url.startsWith("https://en.wikipedia.org") && url.contains("/wiki/") && !url.substring(6).contains(":")
-                    && !url.contains("#") && !url.contains("%")){
+                    && !url.contains("#") && !url.contains("%") && !url.contains("(identifier)")){
 
                 // Extract text from the webpage so that content length can be assessed
                 String content = WebTextProcessor.extractTextFromUrl(url);
@@ -225,8 +223,11 @@ public class Scraper {
                 // If the content on the page contains a sufficient number of characters:
                 if(content.length() > 8000){
 
+                    // Convert url string to topic string
+                    String topic = url.substring(30).replaceAll("_", " ");
+
                     // See if the node already exists
-                    GraphNode existingNode = graph.getNode(url);
+                    GraphNode existingNode = graph.getNode(topic);
 
                     // If the node already exists:
                     if(existingNode != null){
