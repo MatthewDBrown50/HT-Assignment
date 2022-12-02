@@ -89,7 +89,7 @@ public class Scraper {
      *  Assign an HT to the new GraphNode with word counts
      *  Assign the new GraphNode to this.currentNode
      */
-    public void addWebsite(String url) throws IOException {
+    public void addWebsite(String url){
 
         // Establish a new GraphNode with the specified URL
         GraphNode node = new GraphNode(url);
@@ -114,13 +114,13 @@ public class Scraper {
      * THEN BEGIN MAKING RECURSIVE CALLS, ADDING NEIGHBORS TO THE NEIGHBORS
      * CONTINUE UNTIL 1000 NEIGHBORS HAVE BEEN ADDED
      */
-    private void populateGraph() throws IOException {
+    private void populateGraph(){
 
         // Establish a HashSet for keeping track of which nodes have already been processed
         Set<String> settled = new HashSet<>();
 
         // Establish how many more GraphNodes should be added to the graph
-        int remainingLinkCount = 1000;
+        int remainingLinkCount = 1000 - this.graph.getGraph().size();
 
         // Establish how many links should be used from each site
         int linksPerSite = 5;
@@ -180,7 +180,7 @@ public class Scraper {
      *
      */
     private ArrayList<String> addLinksToGraph(GraphNode node, int linksPerSite,
-                                              Set<String> settled) throws IOException {
+                                              Set<String> settled){
 
         // Establish an ArrayList for keeping track of the links found on the webpage at the node's URL
         ArrayList<String> linkList = new ArrayList<>();

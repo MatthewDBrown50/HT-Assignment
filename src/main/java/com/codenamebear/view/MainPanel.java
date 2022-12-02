@@ -84,9 +84,10 @@ public class MainPanel extends JPanel {
         this.resultsScroll.setBorder(BorderFactory.createEtchedBorder());
 
         // Establish statistics label with topic count and disjoint sets count
+        int seedsCount = this.graph.getGraph().size();
         int topicsCount = graph.getTopics().size();
         int disjointSetCount = this.graph.getDisjointSetCount();
-        this.statsLabel = new JLabel("Total number of topics: " + topicsCount +
+        this.statsLabel = new JLabel("Seeds: " + seedsCount + "       Total number of topics: " + topicsCount +
                 "       Disjoint sets: " + disjointSetCount);
         this.statsLabel.setFont(BOLD_FONT);
 
