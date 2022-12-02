@@ -49,6 +49,7 @@ public class HT implements java.io.Serializable {
         }
     }
 
+    @SuppressWarnings("unused")
     public int getSize() {
         return size;
     }
